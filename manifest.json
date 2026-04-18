@@ -1,4 +1,5 @@
 {
+  "id": "/index.html",
   "name": "DataGrid",
   "short_name": "DataGrid",
   "description": "Registra tablas, lleva cuentas y organiza información con rapidez desde tu teléfono.",
@@ -12,7 +13,7 @@
   "categories": ["productivity", "utilities", "finance"],
   "icons": [
     {
-      "src": "https://raw.githubusercontent.com/ElFaraon65/DataGrid/refs/heads/main/assets/icons/icon-72.png",
+      "src": "ahttps://raw.githubusercontent.com/ElFaraon65/DataGrid/refs/heads/main/assets/icons/icon-72.png",
       "sizes": "72x72",
       "type": "image/png",
       "purpose": "any"
@@ -64,14 +65,14 @@
     {
       "src": "https://raw.githubusercontent.com/ElFaraon65/DataGrid/refs/heads/main/Screenshots/screen-feed.jpeg",
       "sizes": "392x649",
-      "type": "image/jpeg",
+      "type": "image/png",
       "form_factor": "narrow",
       "label": "Pantalla principal con tablas"
     },
     {
       "src": "https://raw.githubusercontent.com/ElFaraon65/DataGrid/refs/heads/main/Screenshots/screen-editor.jpeg",
       "sizes": "720x1331",
-      "type": "image/jpeg",
+      "type": "image/png",
       "form_factor": "narrow",
       "label": "Editor de tabla"
     }
