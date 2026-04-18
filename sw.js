@@ -6,10 +6,10 @@
 
 const CACHE_NAME  = 'datagrid-v1';
 const STATIC_ASSETS = [
-  '/index.html',
-  '/manifest.json',
-  '/assets/icons/icon-192.png',
-  '/assets/icons/icon-512.png',
+  'index.html',
+  'manifest.json',
+  'assets/icons/icon-192.png',
+  'assets/icons/icon-512.png',
   /* Google Fonts (se cachean en la primera visita) */
   'https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=IBM+Plex+Mono:wght@300;400;500&display=swap'
 ];
