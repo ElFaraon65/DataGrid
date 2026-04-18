@@ -12,31 +12,31 @@
   "categories": ["productivity", "utilities", "finance"],
   "icons": [
     {
-      "src": "assets/icons/icon-72.png",
+      "src": "ahttps://raw.githubusercontent.com/ElFaraon65/DataGrid/refs/heads/main/assets/icons/icon-72.png",
       "sizes": "72x72",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "assets/icons/icon-96.png",
+      "src": "https://raw.githubusercontent.com/ElFaraon65/DataGrid/refs/heads/main/assets/icons/icon-96.png",
       "sizes": "96x96",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "assets/icons/icon-128.png",
+      "src": "https://raw.githubusercontent.com/ElFaraon65/DataGrid/refs/heads/main/assets/icons/icon-128.png",
       "sizes": "128x128",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "assets/icons/icon-144.png",
+      "src": "https://raw.githubusercontent.com/ElFaraon65/DataGrid/refs/heads/main/assets/icons/icon-144.png",
       "sizes": "144x144",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "assets/icons/icon-152.png",
+      "src": "https://raw.githubusercontent.com/ElFaraon65/DataGrid/refs/heads/main/assets/icons/icon-152.png",
       "sizes": "152x152",
       "type": "image/png",
       "purpose": "any"
@@ -48,7 +48,7 @@
       "purpose": "any maskable"
     },
     {
-      "src": "assets/icons/icon-384.png",
+      "src": "https://raw.githubusercontent.com/ElFaraon65/DataGrid/refs/heads/main/assets/icons/icon-384.png",
       "sizes": "384x384",
       "type": "image/png",
       "purpose": "any"
@@ -62,15 +62,15 @@
   ],
   "screenshots": [
     {
-      "src": "Screenshots/screen-feed.png",
-      "sizes": "720x1612",
+      "src": "https://raw.githubusercontent.com/ElFaraon65/DataGrid/refs/heads/main/Screenshots/screen-feed.jpeg",
+      "sizes": "392x649",
       "type": "image/png",
       "form_factor": "narrow",
       "label": "Pantalla principal con tablas"
     },
     {
-      "src": "Screenshots/screen-editor.png",
-      "sizes": "720x1612",
+      "src": "https://raw.githubusercontent.com/ElFaraon65/DataGrid/refs/heads/main/Screenshots/screen-editor.jpeg",
+      "sizes": "720x1331",
       "type": "image/png",
       "form_factor": "narrow",
       "label": "Editor de tabla"
