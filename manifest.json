@@ -12,7 +12,7 @@
   "categories": ["productivity", "utilities", "finance"],
   "icons": [
     {
-      "src": "ahttps://raw.githubusercontent.com/ElFaraon65/DataGrid/refs/heads/main/assets/icons/icon-72.png",
+      "src": "https://raw.githubusercontent.com/ElFaraon65/DataGrid/refs/heads/main/assets/icons/icon-72.png",
       "sizes": "72x72",
       "type": "image/png",
       "purpose": "any"
