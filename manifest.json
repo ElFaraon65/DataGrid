@@ -1,16 +1,20 @@
 {
-  "id": "/index.html",
+  "id": "/DataGrid/index.html",
   "name": "DataGrid",
   "short_name": "DataGrid",
   "description": "Registra tablas, lleva cuentas y organiza información con rapidez desde tu teléfono.",
   "lang": "es",
-  "start_url": "/index.html",
-  "scope": "/",
+  "start_url": "/DataGrid/index.html",
+  "scope": "/DataGrid/",
   "display": "fullscreen",
   "orientation": "portrait",
   "background_color": "#07101F",
   "theme_color": "#E8B84B",
-  "categories": ["productivity", "utilities", "finance"],
+  "categories": [
+    "productivity",
+    "utilities",
+    "finance"
+  ],
   "icons": [
     {
       "src": "https://raw.githubusercontent.com/ElFaraon65/DataGrid/refs/heads/main/assets/icons/icon-72.png",
