@@ -62,7 +62,7 @@ self.addEventListener('fetch', event => {
         .catch(() => {
           /* Sin red y sin caché: devolver el HTML principal como fallback */
           if (event.request.destination === 'document') {
-            return caches.match('/index.html');
+            return caches.match('index.html');
           }
         });
     })
