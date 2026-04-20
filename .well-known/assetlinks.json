@@ -1,1 +1,8 @@
-
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "io.github.elfaraon65.datagrid",
+        "sha256_cert_fingerprints": ["F0:8A:0E:80:02:3F:E5:23:F3:C8:94:79:59:85:B6:18:FA:47:64:B1:21:D2:97:07:AC:1D:25:A9:6E:AA:99:D5"]
+      }
+    }]
