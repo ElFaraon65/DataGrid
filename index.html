@@ -77,6 +77,7 @@ body{
   display:flex;flex-direction:column;
   align-items:center;justify-content:center;
   height:100dvh;background:var(--bg);gap:28px;
+  position:relative;z-index:999;
 }
 .splash-logo{
   width:clamp(80px,22vw,110px);height:clamp(80px,22vw,110px);
@@ -177,6 +178,41 @@ body{
   cursor:pointer;flex-shrink:0;transition:background .15s,color .15s,border-color .15s;
 }
 .btn-del:active{background:var(--d-dim);color:var(--danger);border-color:var(--danger)}
+
+/* ─── Botón exportar burbuja ─── */
+.btn-export{
+  height:clamp(36px,9vw,42px);
+  min-width:clamp(54px,14vw,68px);
+  background:transparent;border:1px solid var(--border);border-radius:var(--r-sm);
+  color:var(--muted);font-size:var(--fs-xs);letter-spacing:.03em;
+  display:flex;align-items:center;justify-content:center;gap:4px;
+  cursor:pointer;flex-shrink:0;transition:background .15s,color .15s,border-color .15s;
+  padding:0 12px;
+  /* hitbox reducida al centro: los 40% laterales no reaccionan */
+  position:relative;
+}
+/* Zona activa central — pseudo-elemento que restringe el área de click visual */
+.btn-export::before{
+  content:'';position:absolute;inset:0 20% 0 20%;
+}
+.btn-export:active{background:var(--a-dim);color:var(--accent);border-color:var(--accent)}
+.btn-export svg{pointer-events:none;flex-shrink:0}
+
+/* Menú flotante global — fuera del overflow:hidden de la burbuja */
+#export-float-menu{
+  position:fixed;
+  background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-md);
+  box-shadow:var(--shadow);z-index:9999;
+  display:none;flex-direction:column;min-width:130px;overflow:hidden;
+}
+#export-float-menu.open{display:flex;}
+.export-opt{
+  padding:13px 18px;font-size:var(--fs-sm);color:var(--text);
+  background:transparent;border:none;cursor:pointer;text-align:left;
+  font-family:inherit;transition:background .12s;display:flex;align-items:center;gap:8px;
+}
+.export-opt:hover{background:var(--surface3);}
+.export-opt:active{background:var(--surface3);}
 
 /* ═══════════════════════════════════════════════════════════  FAB */
 #fab-wrap{position:fixed;bottom:clamp(20px,6vw,28px);right:clamp(16px,5vw,24px);z-index:90;display:flex;flex-direction:column;align-items:flex-end;gap:12px}
@@ -385,6 +421,7 @@ body{
   color:var(--accent);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
 .rtable th.corner{color:var(--muted);min-width:24px;width:24px}
+.rtable th.first-col{color:var(--blue)}
 .rtable td{
   border:1px solid var(--border);
   padding:clamp(4px,1.2vw,6px) clamp(4px,1.2vw,6px);
@@ -507,7 +544,9 @@ body{
 
 /* Editor table container */
 .ed-table-wrap{
-  flex:1;overflow:auto;overscroll-behavior:contain;
+  flex:1;
+  min-height:0; /* 🔧 FIX: sin esto, flex-item puede crecer infinito y no scroll */
+  overflow:auto;overscroll-behavior:contain;
   padding:clamp(10px,3vw,14px) clamp(8px,2.5vw,12px) 0;
   background:var(--bg);
 }
@@ -1067,6 +1106,71 @@ input[type=range].font-range::-webkit-slider-thumb{-webkit-appearance:none;width
 #search-bar.tut-locked{pointer-events:none !important;opacity:.3 !important}
 /* Engranaje bloqueado */
 #btn-settings.tut-locked{pointer-events:none !important;opacity:.25 !important}
+
+/* ═══════════════════════════════════════════════════════════
+   PC SCROLL — solo dispositivos con mouse real (hover+pointer:fine)
+   En PC el scroll del feed es la página entera, no un contenedor.
+   Topbar + search-wrap + money-bar quedan sticky arriba.
+   En móvil/tablet todo permanece exactamente igual.
+═══════════════════════════════════════════════════════════ */
+@media (hover:hover) and (pointer:fine){
+
+  /* html/body dejan de cortar el scroll */
+  html{ height:auto; }
+  body{
+    overflow:auto !important;
+    min-height:100vh;
+    height:auto !important;
+  }
+
+  /* La vista feed ocupa mínimo toda la pantalla pero puede crecer */
+  #v-feed{
+    height:auto !important;
+    min-height:100vh;
+    overflow:visible !important;
+  }
+
+  /* Topbar fija arriba */
+  #v-feed .topbar{
+    position:sticky;
+    top:0;
+    z-index:100;
+  }
+
+  /* Barra de búsqueda pegada justo bajo la topbar */
+  #search-wrap{
+    position:sticky;
+    top:var(--touch);   /* misma altura que la topbar */
+    z-index:99;
+    background:var(--bg);
+  }
+
+  /* Money-bar pegado bajo search-wrap cuando está visible */
+  #money-bar{
+    position:sticky;
+    top:calc(var(--touch) + clamp(54px,13.5vw,68px));
+    z-index:98;
+    background:var(--surface2);
+  }
+
+  /* feed-scroll ya no es el scrolleable — fluye normal */
+  #feed-scroll{
+    flex:none !important;
+    overflow:visible !important;
+    overscroll-behavior:unset !important;
+    /* mantener padding original */
+    padding-bottom:120px;
+  }
+
+  /* El resto de vistas (editor, etc.) siguen siendo overflow:hidden
+     solo v-feed queda libre */
+  #v-editor,
+  #v-splash,
+  #v-welcome{
+    height:calc(var(--vh,1vh)*100) !important;
+    overflow:hidden !important;
+  }
+}
 </style>
 </head>
 <body>
@@ -1288,13 +1392,6 @@ input[type=range].font-range::-webkit-slider-thumb{-webkit-appearance:none;width
       <button class="btn-add-cat" onclick="openCatCreate()">+ Nueva categoría</button>
     </div>
     <div class="cfg-section">
-      <div class="cfg-section-title">Tablas</div>
-      <div class="cfg-item soon">
-        <div class="cfg-labels"><div class="cfg-label">Exportar datos</div><div class="cfg-desc">Exporta en CSV o JSON</div></div>
-        <span class="badge-soon">Pronto</span>
-      </div>
-    </div>
-    <div class="cfg-section">
       <div class="cfg-section-title">Datos</div>
       <div class="cfg-item soon">
         <div class="cfg-labels"><div class="cfg-label">Historial de cambios</div><div class="cfg-desc">Versiones anteriores de tus tablas</div></div>
@@ -1403,7 +1500,7 @@ input[type=range].font-range::-webkit-slider-thumb{-webkit-appearance:none;width
 </div>
 
 <!-- ═══════════════════════════════════════  CATEGORY CREATE MODAL -->
-<div id="cat-modal" class="modal-bg" onclick="if(event.target===this)closeCatModal()">
+<div id="cat-modal" class="modal-bg" style="z-index:820" onclick="if(event.target===this)closeCatModal()">
   <div class="modal-box">
     <div class="modal-header">
       <span class="modal-title">Nueva categoría</span>
@@ -1519,10 +1616,12 @@ function showView(id){
   const el=document.getElementById(id);if(el)el.classList.add('active');
   // Show/hide FAB only on feed
   document.getElementById('fab-wrap').style.display = id==='v-feed' ? '' : 'none';
+  // En PC: resetear scroll de página al cambiar de vista
+  window.scrollTo(0,0);
 }
 
 // ═══════════════════════════════════════════════════
-//  TUTORIAL  (17 pasos — no se elimina ninguno)
+//  TUTORIAL  (20 pasos — exportación antes de eliminar)
 // ═══════════════════════════════════════════════════
 const TUT_STEPS=[
   // 1
@@ -1540,7 +1639,7 @@ const TUT_STEPS=[
   // 3
   {id:'template-info',
    target:'#tpl-modal .modal-box',
-   title:'Seleccione el tipo de tabla',
+   title:'Escoge tu plantilla',
    msg:'Estas son las 4 plantillas disponibles. Cada una ya tiene las columnas listas:\n\n• <strong>Finanzas</strong> — ingresos y gastos\n• <strong>Inventario</strong> — productos y cantidades\n• <strong>Contactos</strong> — nombres y teléfonos\n• <strong>Personalizada</strong> — usted define todo desde cero\n\nToque <strong>Siguiente</strong> cuando haya visto las opciones.',
    wait:'btn',btn:'Siguiente →'},
   // 4
@@ -1612,19 +1711,37 @@ const TUT_STEPS=[
    title:'Categorías de color',
    msg:'Las categorías agrupan tablas con una banda de color. Por ejemplo: "Trabajo" en azul, "Casa" en verde.\n\nToque el <strong>engranaje</strong> arriba a la derecha para abrir Configuración y crear su primera categoría.',
    wait:'tap'},
-  // 15
+  // 15 — Exportar tabla (botón EXP)
+  {id:'export-btn',
+   target:'.btn-export',
+   title:'Exportar tabla',
+   msg:'Cada tarjeta tiene un botón <strong>EXP</strong> arriba a la derecha. Este botón permite exportar la tabla a formato PDF o imagen PNG para compartirla o guardarla.\n\n<strong>Toque el botón EXP ahora</strong> para continuar.',
+   wait:'tap'},
+  // 16 — Menú de exportación
+  {id:'export-menu',
+   target:'#export-float-menu',
+   title:'Opciones de exportación',
+   msg:'Aquí puede elegir entre <strong>PDF</strong> (documento listo para imprimir) y <strong>PNG</strong> (imagen de alta calidad).\n\nToque <strong>Siguiente</strong> cuando lo haya revisado.',
+   wait:'btn',btn:'Siguiente →'},
+  // 17 — Descarga completada
+  {id:'export-download',
+   target:null,
+   title:'Descarga completada',
+   msg:'El archivo se descargará automáticamente en su dispositivo. En PC se guardará en la carpeta de <strong>Descargas</strong> y en el teléfono podrá encontrarlo en la aplicación de <strong>Archivos</strong> o <strong>Descargas</strong>.\n\nDataGrid no accede a su galería ni al explorador de archivos.',
+   wait:'btn',btn:'Entendido'},
+  // 18
   {id:'delete',
    target:'.btn-del',
    title:'Eliminar una tabla',
    msg:'Para borrar una tabla, toque el botón <strong>✕</strong> en la esquina de cualquier tarjeta. Se abrirá una ventana de confirmación.\n\n<strong>Toque el ✕ de cualquier tarjeta ahora.</strong>',
    wait:'tap'},
-  // 16
+  // 19
   {id:'delete-confirm',
    target:'#del-modal .modal-box',
    title:'Confirme la eliminación',
    msg:'Esta ventana evita borrados accidentales.\n\nPuede tocar <strong>"Cancelar"</strong> o <strong>"Sí, eliminar"</strong>.\n\n<strong>Toque cualquiera de los dos para finalizar el recorrido.</strong>',
    wait:'modal-action'},
-  // 17
+  // 20
   {id:'done',
    target:null,
    title:'Recorrido completado',
@@ -1790,19 +1907,44 @@ function spotlightTut(sel){
     pieces.forEach(id=>{ const e=document.getElementById(id);e.classList.remove('show');e.style.cssText=''; });
     shine.classList.remove('show');return;
   }
-  const el=document.querySelector(sel);
-  if(!el){ 
+
+  // Para selectores con múltiples resultados, elegir el primero visible en viewport
+  let el=null;
+  const candidates=document.querySelectorAll(sel);
+  if(candidates.length>1){
+    const vh=window.innerHeight;
+    for(const c of candidates){
+      const cr=c.getBoundingClientRect();
+      if(cr.width>0&&cr.height>0&&cr.top>=0&&cr.bottom<=vh){ el=c; break; }
+    }
+  }
+  if(!el) el=document.querySelector(sel);
+  if(!el){
     pieces.forEach(id=>document.getElementById(id).classList.remove('show'));
     shine.classList.remove('show');
     return;
   }
-  const r=el.getBoundingClientRect();
-  // Si el elemento no tiene tamaño (aún no renderizado), reintentar tras 50ms
-  if(r.width===0 || r.height===0){
-    setTimeout(()=>spotlightTut(sel),50);
+
+  // Si el botón export está dentro de un scroll container, asegurarse que esté visible
+  if(sel==='.btn-export'){
+    // 🔧 FIX: limpiar el spotlight del paso anterior ANTES del retry,
+    // para que no quede «pegado» en la posición de la ventana categoría.
+    pieces.forEach(id=>{
+      const e=document.getElementById(id);
+      e.classList.remove('show');
+      e.style.cssText='';
+    });
+    shine.classList.remove('show');
+    el.scrollIntoView({block:'nearest',inline:'nearest'});
+    // setTimeout > rAF: da tiempo a que el scroll termine de pintar
+    setTimeout(()=>spotlightTut(sel), 100);
     return;
   }
-  const pad=10,vw=window.innerWidth,vh=window.innerHeight;
+
+  const r=el.getBoundingClientRect();
+  if(r.width===0||r.height===0){ setTimeout(()=>spotlightTut(sel),50); return; }
+
+  const pad=5,vw=window.innerWidth,vh=window.innerHeight;
   const T=Math.max(0,r.top-pad),B=Math.min(vh,r.bottom+pad);
   const L=Math.max(0,r.left-pad),R=Math.min(vw,r.right+pad);
   const set=(id,css)=>{ const e=document.getElementById(id);e.classList.add('show');e.style.cssText=css; };
@@ -1811,7 +1953,9 @@ function spotlightTut(sel){
   set('tut-left',   `top:${T}px;left:0;width:${L}px;height:${B-T}px`);
   set('tut-right',  `top:${T}px;left:${R}px;right:0;height:${B-T}px`);
   shine.classList.add('show');
-  shine.style.cssText=`top:${T}px;left:${L}px;width:${R-L}px;height:${B-T}px;border-radius:12px`;
+  // Adaptar border-radius al elemento resaltado
+  const elRadius=parseFloat(getComputedStyle(el).borderRadius)||8;
+  shine.style.cssText=`top:${T}px;left:${L}px;width:${R-L}px;height:${B-T}px;border-radius:${Math.min(elRadius+pad,20)}px`;
 }
 
 function positionCard(sel){
@@ -1853,7 +1997,15 @@ function positionCard(sel){
     // → tarjeta en la PARTE INFERIOR (modal está en el centro, espacio libre abajo)
     if(sel.includes('modal')){
       if (tutActive && TUT_STEPS[tutStep]?.id === 'template-info') {
-        card.style.cssText = `left:${safePad}px;right:${safePad}px;bottom:85px;top:auto;position:fixed;min-height:75dvh;max-height:500dvh;`;
+        // 🔧 FIX: la tarjeta se pone ENCIMA del modal de plantillas (como guardaespaldas).
+        // En móvil, left/right están forzados por CSS (!important), sólo podemos mover top/height.
+        const modalBox = document.querySelector('#tpl-modal .modal-box');
+        if(modalBox){
+          const mr = modalBox.getBoundingClientRect();
+          card.style.cssText = `top:${Math.max(safePad, mr.top)}px;bottom:auto;position:fixed;height:${mr.height}px;overflow-y:auto;`;
+        } else {
+          card.style.cssText = `left:${safePad}px;right:${safePad}px;top:60px;bottom:auto;position:fixed;min-height:70dvh;overflow-y:auto;`;
+        }
       } else if (tutActive && TUT_STEPS[tutStep]?.id === 'delete-confirm') {
         // Pegado al techo
         card.style.cssText = `left:${safePad}px;right:${safePad}px;top:5px;bottom:auto;position:fixed;height:25dvh;`;
@@ -1908,6 +2060,18 @@ function positionCard(sel){
      Flotante inteligente: intenta derecha, luego izquierda,
      luego abajo/arriba. Nunca sale de pantalla.
      ──────────────────────────────────────────────────────── */
+
+  // 🔧 FIX: En el paso template-info la tarjeta cubre el modal de plantillas (desktop)
+  if(tutActive && TUT_STEPS[tutStep]?.id === 'template-info'){
+    const modalBox = document.querySelector('#tpl-modal .modal-box');
+    if(modalBox){
+      const mr = modalBox.getBoundingClientRect();
+      const extra=20;
+      card.style.cssText = `left:${mr.left-extra}px;top:${mr.top-extra}px;width:${mr.width+extra*2}px;height:${mr.height+extra*2}px;position:fixed;overflow-y:auto;z-index:980;`;
+      return;
+    }
+  }
+
   const cardW = Math.min(vw * 0.55, 400);
   const pad   = 20;
 
@@ -1976,6 +2140,7 @@ const FEED_LOCKED_STEPS = new Set([
   'search',   // paso 13 — solo "Siguiente"
 ]);
 const FAB_ACTIVE_STEPS = new Set(['fab']); // paso 2 — solo FAB
+const EXPORT_STEPS = new Set(['export-btn','export-menu','export-download']);
 
 function lockFeedUI(){
   if(!tutActive){ _unlockFeedUI(); return; }
@@ -2023,6 +2188,16 @@ function lockFeedUI(){
     if(gear)   gear.classList.add('tut-locked');
     return;
   }
+
+  // Pasos de exportación: bloquear FAB, búsqueda y engranaje, pero NO las burbujas
+  // (el botón EXP está dentro de la burbuja y debe ser clickeable)
+  if(EXPORT_STEPS.has(id)){
+    if(fab)    fab.classList.add('tut-locked');
+    if(search) search.classList.add('tut-locked');
+    if(gear)   gear.classList.add('tut-locked');
+    // El feed no se bloquea para permitir clic en .btn-export
+    return;
+  }
 }
 
 function _unlockFeedUI(){
@@ -2067,7 +2242,7 @@ function openTemplatePicker(){
   // Paso fab → avanzar a template-info (el modal se queda abierto)
   if(tutActive && TUT_STEPS[tutStep]?.id==='fab') advanceTut();
 }
-function closeTpl(){ document.getElementById('tpl-modal').classList.remove('open'); }
+function closeTpl(){ if(tutActive) return; document.getElementById('tpl-modal').classList.remove('open'); }
 
 let activeTplKey=null; // plantilla activa para controlar qué tipos están disponibles
 
@@ -2113,6 +2288,7 @@ function openCfg(){
   });
 }
 function closeCfg(){
+  if(tutActive) return;
   // Si el tamaño cambió y no estamos en tutorial, pedir confirmación
   if(!tutActive && _pendingFontSize !== _fontSizeAtOpen){
     document.getElementById('font-confirm-val').textContent = _pendingFontSize + 'px';
@@ -2209,8 +2385,7 @@ function openCatCreate(){
   }
 }
 function closeCatModal(){ 
-  // Si el tutorial está en paso 'category', no permitir cerrar
-  if(tutActive && TUT_STEPS[tutStep]?.id==='category') return;
+  if(tutActive) return;
   document.getElementById('cat-modal').classList.remove('open'); 
 }
 
@@ -2705,15 +2880,22 @@ function buildBubble(t,idx){
           <span>${gridSVG}${t.rows}&times;${t.cols}</span>${impBadge}${typeBadge}
         </div>
       </div>
-      <button class="btn-del" title="Eliminar" data-idx="${idx}" onclick="handleDelBtn(event,${idx})">✕</button>
+      <button class="btn-export" title="Exportar tabla" data-idx="${idx}" onclick="openExportMenu(event,${idx})">
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>EXP
+      </button>
+      <button class="btn-del" title="Eliminar" data-idx="${idx}" onclick="handleDelBtn(event,${idx})" style="margin-left:6px">✕</button>
     </div>
     <div class="bubble-body">${buildReadTable(t)}</div>
     ${t.type==='finance'?buildFinSummary(t):''}`;
 
   b.addEventListener('click',(e)=>{
-    if(tutActive && (TUT_STEPS[tutStep]?.id==='delete' || TUT_STEPS[tutStep]?.id==='delete-confirm')){
-      e.stopPropagation();
-      return;
+    // Evitar abrir el editor durante los pasos de exportación, delete y delete-confirm
+    if(tutActive){
+      const id = TUT_STEPS[tutStep]?.id;
+      if(id==='delete' || id==='delete-confirm' || EXPORT_STEPS.has(id)){
+        e.stopPropagation();
+        return;
+      }
     }
     trackAccess(idx);
     editTable(idx);
@@ -2725,7 +2907,7 @@ function buildBubble(t,idx){
 
 function buildReadTable(t){
   let h=`<table class="rtable"><thead><tr><th class="corner">#</th>`;
-  t.headers.forEach(hd=>{h+=`<th>${esc(hd||'—')}</th>`});
+  t.headers.forEach((hd,i)=>{h+=`<th${i===0?' class="first-col"':''}>${esc(hd||'—')}</th>`});
   h+=`</tr></thead><tbody>`;
   t.data.forEach((row,r)=>{
     h+=`<tr><td class="corner" style="background:var(--surface3);text-align:center;font-size:var(--fs-xs);color:var(--muted);user-select:none">${r+1}</td>`;
@@ -2997,7 +3179,7 @@ function trackAccess(idx){
 function editTable(i){
   if(tutActive){
     const id = TUT_STEPS[tutStep]?.id;
-    const feedSteps = new Set(['intro','fab','template-info','template','bubble','search','category','delete','delete-confirm','done']);
+    const feedSteps = new Set(['intro','fab','template-info','template','bubble','search','category','delete','delete-confirm','export-btn','export-menu','export-download','done']);
     if(feedSteps.has(id)) return;
   }
   activeTplKey=null; // al editar una tabla ya existente, no hay restricción de tipo
@@ -3141,12 +3323,16 @@ function saveNoteOnly(){
     db.unshift(obj);
   }
   dbSave();renderFeed();
-  closeNote();
+  _forceCloseNote();
 }
 
-function closeNote(){
+function _forceCloseNote(){
   document.getElementById('note-modal')._editIdx=null;
   document.getElementById('note-modal').classList.remove('open');
+}
+function closeNote(){
+  if(tutActive) return;
+  _forceCloseNote();
 }
 
 function convertNote(){
@@ -3184,9 +3370,85 @@ function isLight(hex){
 document.getElementById('font-range').value=cfg.fontSize;
 document.getElementById('font-badge').textContent=cfg.fontSize+'px';
 
-// ═══════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════
+//  NAVEGACIÓN CON TECLADO EN TABLA EDITABLE (solo PC)
+//  ← → mueven entre columnas de la misma fila.
+//  ↑ ↓ mueven entre filas de la misma columna.
+//  El scroll vertical del mouse sigue funcionando normal.
+// ═══════════════════════════════════════════════════
+document.addEventListener('keydown', function(e){
+  // Solo desktop (≥640 px) — en móvil no interceder
+  if(window.innerWidth < 640) return;
+  const active = document.activeElement;
+  if(!active || active.tagName !== 'INPUT') return;
+  const tableEl = document.getElementById('etable');
+  if(!tableEl || !tableEl.contains(active)) return;
+
+  const td = active.closest('td.dc, th.ch');
+  if(!td) return;
+  const tr = td.closest('tr');
+  if(!tr) return;
+
+  // Inputs navegables de la fila actual (excluye el número de fila .rn)
+  const rowInputs = [...tr.querySelectorAll('td.dc input, th.ch input')];
+  const currentIdx = rowInputs.indexOf(active);
+  const allRows   = [...tableEl.rows];
+  const rowIdx    = allRows.indexOf(tr);
+
+  // Función auxiliar: foco + scroll dentro del contenedor
+  const moveTo = (inp) => {
+    if(!inp) return;
+    inp.focus();
+    inp.select();
+    // Asegura visibilidad dentro de ed-table-wrap
+    const wrap = document.querySelector('.ed-table-wrap');
+    if(wrap){
+      const ir = inp.getBoundingClientRect();
+      const wr = wrap.getBoundingClientRect();
+      if(ir.left < wr.left)   wrap.scrollLeft -= (wr.left - ir.left + 8);
+      if(ir.right > wr.right) wrap.scrollLeft += (ir.right - wr.right + 8);
+      if(ir.top < wr.top)     wrap.scrollTop  -= (wr.top - ir.top + 8);
+      if(ir.bottom > wr.bottom) wrap.scrollTop += (ir.bottom - wr.bottom + 8);
+    }
+  };
+
+  if(e.key === 'ArrowRight'){
+    e.preventDefault();
+    moveTo(rowInputs[currentIdx + 1]);
+
+  } else if(e.key === 'ArrowLeft'){
+    e.preventDefault();
+    moveTo(rowInputs[currentIdx - 1]);
+
+  } else if(e.key === 'ArrowDown'){
+    e.preventDefault();
+    if(rowIdx < allRows.length - 1){
+      const nextTr = allRows[rowIdx + 1];
+      const dcInputs = [...tr.querySelectorAll('td.dc input')];
+      const dcIdx    = dcInputs.indexOf(active);
+      if(dcIdx >= 0){
+        moveTo([...nextTr.querySelectorAll('td.dc input')][dcIdx]);
+      }
+    }
+
+  } else if(e.key === 'ArrowUp'){
+    e.preventDefault();
+    if(rowIdx > 0){
+      const prevTr = allRows[rowIdx - 1];
+      // Si el destino es la fila de cabeceras (row 0), apuntar a th.ch inputs
+      const prevInputs = rowIdx === 1
+        ? [...prevTr.querySelectorAll('th.ch input')]
+        : [...prevTr.querySelectorAll('td.dc input')];
+      const dcInputs = [...tr.querySelectorAll('td.dc input')];
+      const dcIdx    = dcInputs.indexOf(active);
+      if(dcIdx >= 0) moveTo(prevInputs[dcIdx]);
+    }
+  }
+});
+
+// ═══════════════════════════════════════════════════
 //  CORRECCIÓN DE ALTURA REAL EN MÓVILES (100dvh FALLBACK)
-// ═══════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════
 function setMobileVH() {
   const vh = window.innerHeight * 0.01;
   document.documentElement.style.setProperty('--vh', `${vh}px`);
@@ -3205,6 +3467,224 @@ if ('serviceWorker' in navigator) {
   });
 }
 
+/* ═══════════════════════════════════════
+   EXPORT: PDF y PNG por tabla
+═══════════════════════════════════════ */
+let _openExportIdx = null;
+
+function openExportMenu(e, idx){
+  e.stopPropagation();
+  // Si el tutorial está en el paso 'export-btn', avanzar al siguiente paso
+  if(tutActive && TUT_STEPS[tutStep]?.id==='export-btn'){
+    advanceTut();
+  }
+  const menu = document.getElementById('export-float-menu');
+  if(!menu) return;
+
+  // Si el menú ya está abierto para el mismo índice, lo cerramos (toggle)
+  if(_openExportIdx === idx && menu.classList.contains('open')){
+    menu.classList.remove('open');
+    _openExportIdx = null;
+    return;
+  }
+
+  // Cerrar cualquier menú abierto previamente
+  menu.classList.remove('open');
+
+  // Posicionar el menú cerca del botón clickeado
+  const btn = e.currentTarget;
+  const rect = btn.getBoundingClientRect();
+  // En móviles, centrar horizontalmente; en desktop, alinear al borde derecho del botón
+  const vw = window.innerWidth;
+  const menuW = 140; // ancho mínimo del menú
+  let left = rect.right - menuW;
+  if(left < 8) left = 8;
+  if(left + menuW > vw - 8) left = vw - menuW - 8;
+  let top = rect.bottom + 6;
+  // Si se sale por abajo, mostrarlo arriba del botón
+  if(top + 100 > window.innerHeight - 20){
+    top = rect.top - 100 - 6;
+  }
+  menu.style.left = left + 'px';
+  menu.style.top  = top + 'px';
+
+  // Mostrar
+  menu.classList.add('open');
+  _openExportIdx = idx;
+}
+
+function exportFromMenu(e, format){
+  e.stopPropagation();
+  const idx = _openExportIdx;
+  // Cerrar menú
+  document.getElementById('export-float-menu').classList.remove('open');
+  _openExportIdx = null;
+  if(idx === null || idx < 0 || idx >= db.length) return;
+  exportTable(e, idx, format);
+}
+
+// Cerrar menú al hacer clic fuera
+document.addEventListener('click', (e) => {
+  const menu = document.getElementById('export-float-menu');
+  if(!menu || !menu.classList.contains('open')) return;
+  // Si el clic fue dentro del menú o en un botón export, no cerrar
+  if(menu.contains(e.target) || e.target.closest('.btn-export')) return;
+  menu.classList.remove('open');
+  _openExportIdx = null;
+});
+
+async function exportTable(e, idx, format){
+  e.stopPropagation();
+  document.querySelectorAll('.export-menu.open').forEach(m=>m.classList.remove('open'));
+
+  const t = db[idx];
+  if(!t) return;
+  const safeName = (t.name || 'tabla').replace(/[^a-z0-9_\-]/gi,'_');
+
+  // --- Construir HTML de la tabla para capturar ---
+  const container = document.createElement('div');
+  container.style.cssText = `
+    position:fixed;left:-9999px;top:0;
+    background:#07101F;color:#EDF3FC;
+    font-family:'IBM Plex Mono',monospace;font-size:14px;
+    padding:20px 24px 24px;border-radius:12px;
+    width:max-content;max-width:700px;
+  `;
+
+  // Título
+  const titleEl = document.createElement('div');
+  titleEl.style.cssText = 'font-family:Syne,sans-serif;font-size:18px;font-weight:700;margin-bottom:12px;color:#EDF3FC';
+  titleEl.textContent = t.name || 'Sin título';
+  container.appendChild(titleEl);
+
+  // Tabla HTML
+  const tableEl = document.createElement('table');
+  tableEl.style.cssText = 'border-collapse:collapse;width:100%';
+
+  // Cabecera
+  const thead = document.createElement('thead');
+  const hrow = document.createElement('tr');
+  ['#', ...t.headers].forEach((h,i)=>{
+    const th = document.createElement('th');
+    th.textContent = h ? h.toUpperCase() : '—';
+    th.style.cssText = `border:1px solid #1E3050;padding:6px 10px;background:#0D1A2E;color:${i===0?'#8BAAC8':'#E8B84B'};text-align:left;font-size:12px`;
+    hrow.appendChild(th);
+  });
+  thead.appendChild(hrow); tableEl.appendChild(thead);
+
+  // Cuerpo
+  const tbody = document.createElement('tbody');
+  t.data.forEach((row,r)=>{
+    const tr = document.createElement('tr');
+    const rn = document.createElement('td');
+    rn.textContent = r+1;
+    rn.style.cssText = 'border:1px solid #1E3050;padding:5px 10px;color:#8BAAC8;font-size:11px;background:#0D1A2E';
+    tr.appendChild(rn);
+    row.forEach(cell=>{
+      const td = document.createElement('td');
+      td.textContent = cell || '';
+      td.style.cssText = 'border:1px solid #1E3050;padding:5px 10px;font-size:12px';
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  });
+  tableEl.appendChild(tbody);
+  container.appendChild(tableEl);
+  document.body.appendChild(container);
+
+  // Esperar fonts
+  await document.fonts.ready;
+
+  // Usar html2canvas si está disponible, sino Canvas API básica
+  try {
+    // Cargamos html2canvas dinámicamente
+    if(!window.html2canvas){
+      await new Promise((res,rej)=>{
+        const s=document.createElement('script');
+        s.src='https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+        s.onload=res; s.onerror=rej;
+        document.head.appendChild(s);
+      });
+    }
+
+    const canvas = await html2canvas(container, {
+      backgroundColor:'#07101F',
+      scale: 2,
+      useCORS: true,
+      logging: false
+    });
+
+    document.body.removeChild(container);
+
+    if(format === 'png'){
+      _downloadCanvas(canvas, safeName + '.png', 'image/png');
+    } else {
+      // PDF via jsPDF
+      if(!window.jspdf){
+        await new Promise((res,rej)=>{
+          const s=document.createElement('script');
+          s.src='https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+          s.onload=res; s.onerror=rej;
+          document.head.appendChild(s);
+        });
+      }
+      const { jsPDF } = window.jspdf;
+      const imgData = canvas.toDataURL('image/png');
+      const pxToMm = px => px * 0.2645833333;
+      const w = pxToMm(canvas.width/2);
+      const h = pxToMm(canvas.height/2);
+      const pdf = new jsPDF({ orientation: w>h?'landscape':'portrait', unit:'mm', format:[w+20, h+20] });
+      pdf.addImage(imgData,'PNG',10,10,w,h);
+      _downloadPDF(pdf, safeName + '.pdf');
+    }
+
+  } catch(err){
+    document.body.removeChild(container);
+    console.error('Export error:', err);
+    alert('No se pudo exportar. Inténtalo de nuevo.');
+  }
+}
+
+function _downloadCanvas(canvas, filename, mime){
+  const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
+  if(isMobile){
+    // En móvil: abrir imagen en nueva pestaña para que el usuario la guarde
+    const url = canvas.toDataURL(mime);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename;
+    a.click();
+  } else {
+    canvas.toBlob(blob=>{
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href=url; a.download=filename;
+      document.body.appendChild(a); a.click();
+      setTimeout(()=>{ URL.revokeObjectURL(url); a.remove(); },1000);
+    }, mime);
+  }
+}
+
+function _downloadPDF(pdf, filename){
+  const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
+  if(isMobile){
+    pdf.save(filename); // jsPDF descarga directamente
+  } else {
+    pdf.save(filename); // dispara "Guardar como" en desktop via diálogo nativo del navegador
+  }
+}
+
 </script>
+<!-- Menú flotante de exportación (global, fuera de overflow:hidden) -->
+<div id="export-float-menu">
+  <button class="export-opt" id="export-opt-pdf" onclick="exportFromMenu(event,'pdf')">
+    <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M20 2H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-8.5 7.5c0 .83-.67 1.5-1.5 1.5H9v2H7.5V7H10c.83 0 1.5.67 1.5 1.5v1zm5 2c0 .83-.67 1.5-1.5 1.5h-2.5V7H15c.83 0 1.5.67 1.5 1.5v3zm4-3H19v1h1.5V11H19v2h-1.5V7h3v1.5zM9 9.5h1v-1H9v1zM4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm10 5.5h1v-3h-1v3z"/></svg>
+    PDF
+  </button>
+  <button class="export-opt" id="export-opt-png" onclick="exportFromMenu(event,'png')">
+    <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
+    PNG
+  </button>
+</div>
+
 </body>
 </html>
