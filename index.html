@@ -102,7 +102,11 @@ body{
   height:100dvh;padding:32px 24px;text-align:center;gap:18px;
 }
 #v-welcome.active{display:flex}
-.wlc-icon{font-size:calc(var(--fs)*3.5);margin-bottom:4px}
+.wlc-icon{
+  width:clamp(72px,18vw,90px);height:clamp(72px,18vw,90px);
+  margin-bottom:4px;display:flex;align-items:center;justify-content:center;
+}
+.wlc-icon svg{width:100%;height:100%}
 .wlc-title{font-family:'Syne',sans-serif;font-weight:800;font-size:var(--fs-xl);color:var(--text)}
 .wlc-msg{font-size:var(--fs-sm);color:var(--muted);line-height:1.7;max-width:300px}
 .wlc-msg strong {
@@ -191,8 +195,9 @@ body{
 .fab-item-ico{
   width:32px;height:32px;border-radius:50%;
   display:flex;align-items:center;justify-content:center;
-  font-size:calc(var(--fs)*1.1);
+  flex-shrink:0;
 }
+.fab-item-ico svg{width:16px;height:16px;flex-shrink:0}
 .fab-item-ico.gold{background:var(--a-dim);border:1px solid rgba(232,184,75,.3);color:var(--accent)}
 .fab-item-ico.blue{background:var(--b-dim);border:1px solid rgba(75,143,232,.3);color:var(--blue)}
 
@@ -263,44 +268,59 @@ body{
   width:clamp(64px,16vw,80px);height:clamp(64px,16vw,80px);
   border-radius:20px;background:var(--surface2);border:1px solid var(--border);
   display:flex;align-items:center;justify-content:center;
-  font-size:calc(var(--fs)*2.2);margin-bottom:10px;opacity:.65;
+  margin-bottom:10px;opacity:.65;
 }
+.empty-icon svg{width:60%;height:60%}
 .empty h3{font-family:'Syne',sans-serif;font-size:var(--fs-xl);font-weight:700}
 .empty p{font-size:var(--fs-sm);color:var(--muted);line-height:1.65;max-width:260px}
 
 /* ═══════════════════════════════════════════════════════════  BUBBLE */
 .bubble{
   background:var(--surface);border:1px solid var(--border);
-  border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--shadow);
+  border-radius:var(--r-lg);box-shadow:var(--shadow);
   cursor:pointer;animation:pop .28s cubic-bezier(.2,.8,.3,1) both;
   transition:border-color .18s,box-shadow .18s;
+  overflow:hidden;
 }
 .bubble:active{border-color:var(--blue);box-shadow:0 0 0 2px var(--b-dim),var(--shadow)}
 @keyframes pop{from{opacity:0;transform:translateY(14px) scale(.98)}to{opacity:1;transform:none}}
 
-/* Category band – colored strip above bubble head */
-.cat-band{
-  height:8px;width:100%;
-  display:flex;align-items:center;
-  padding:0 14px;
-  font-family:'Syne',sans-serif;font-size:calc(var(--fs)*.62);
-  font-weight:700;letter-spacing:.6px;text-transform:uppercase;
-  color:rgba(0,0,0,.65);overflow:hidden;white-space:nowrap;
-  line-height:8px;
+/* Categoría: etiqueta independiente encima de la burbuja */
+.bubble-wrap{
+  display:flex;flex-direction:column;gap:0;
 }
-.cat-band.tall{height:20px;line-height:20px}
+.cat-label{
+  align-self:flex-start;
+  padding:3px 12px;
+  border-radius:0;
+  font-family:'Syne',sans-serif;font-weight:700;
+  font-size:calc(var(--fs)*.62);letter-spacing:.6px;text-transform:uppercase;
+  white-space:nowrap;
+  margin-bottom:-1px;
+  position:relative;z-index:1;
+}
+/* La burbuja dentro del wrapper: esquina sup-izq cuadrada donde se pega la lengüeta */
+.bubble-wrap .bubble{
+  border-radius:0 var(--r-lg) var(--r-lg) var(--r-lg);
+}
+.bubble-wrap .bubble:active{border-color:var(--blue);box-shadow:0 0 0 2px var(--b-dim),var(--shadow)}
+/* bubble-head dentro de wrapper: esquina sup-izq también cuadrada */
+.bubble-wrap .bubble-head{
+  border-radius:0 var(--r-lg) 0 0;
+}
 
+/* cat-band legacy — ya no se usa, ocultar por si quedara alguna referencia */
+.cat-band{ display:none; }
+/* Burbuja cabecera — sin el padding extra de antes */
+.bubble.has-cat .bubble-head{
+  padding-top:clamp(10px,3vw,14px);
+}
 .bubble-head{
+  overflow:hidden;
+  border-radius:var(--r-lg) var(--r-lg) 0 0;
   padding:clamp(10px,3vw,14px);background:var(--surface2);
   border-bottom:1px solid var(--border);
   display:flex;align-items:center;gap:clamp(8px,2.5vw,12px);
-}
-.bubble-id{
-  width:clamp(34px,8.5vw,42px);height:clamp(34px,8.5vw,42px);
-  border-radius:var(--r-sm);background:var(--a-dim);
-  border:1px solid rgba(232,184,75,.25);color:var(--accent);
-  font-family:'Syne',sans-serif;font-weight:800;font-size:var(--fs-sm);
-  display:flex;align-items:center;justify-content:center;flex-shrink:0;
 }
 .bubble-info{flex:1;min-width:0}
 .bubble-name{
@@ -331,8 +351,8 @@ body{
 }
 
 .bubble-body{
-  overflow-x:auto;
-  padding:clamp(8px,2.5vw,12px) clamp(8px,3vw,14px) clamp(10px,3vw,14px);
+  overflow:hidden;
+  padding:clamp(8px,2.5vw,12px) clamp(8px,2.5vw,12px) clamp(10px,3vw,14px) clamp(8px,2.5vw,12px);
 }
 
 /* Finance summary row inside bubble */
@@ -352,20 +372,25 @@ body{
 .fin-val.neu{color:var(--text)}
 
 /* Read-only table */
-.rtable{border-collapse:collapse;width:max-content;min-width:100%}
+.rtable{
+  border-collapse:collapse;
+  table-layout:fixed; /* reparte columnas equitativamente — nunca overflow en burbuja */
+  width:100%;         /* siempre llena el bubble-body, sin desbordarse */
+}
 .rtable th{
   background:var(--surface3);border:1px solid var(--border);
-  padding:clamp(5px,1.5vw,7px) clamp(8px,2.5vw,12px);
+  padding:clamp(4px,1.2vw,6px) clamp(4px,1.2vw,6px);
   font-family:'Syne',sans-serif;font-weight:700;
   font-size:var(--fs-xs);letter-spacing:.5px;text-transform:uppercase;
-  color:var(--accent);white-space:nowrap;
+  color:var(--accent);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
-.rtable th.corner{color:var(--muted);min-width:26px;width:26px}
+.rtable th.corner{color:var(--muted);min-width:24px;width:24px}
 .rtable td{
   border:1px solid var(--border);
-  padding:clamp(4px,1.2vw,7px) clamp(8px,2.5vw,12px);
-  font-size:var(--fs-md);color:var(--text);
-  white-space:nowrap;max-width:160px;overflow:hidden;text-overflow:ellipsis;
+  padding:clamp(4px,1.2vw,6px) clamp(4px,1.2vw,6px);
+  font-size:var(--fs-sm);color:var(--text);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  /* sin max-width:0 — con table-layout:fixed el ancho ya está definido por el layout */
 }
 .rtable td.label-col{
   background:var(--surface2);font-family:'Syne',sans-serif;
@@ -454,6 +479,7 @@ body{
   white-space:nowrap;transition:all .15s;flex-shrink:0;
 }
 .type-chip.active{background:var(--a-dim);border-color:rgba(232,184,75,.45);color:var(--accent)}
+.type-chip.locked{opacity:.38;cursor:not-allowed;pointer-events:none;filter:grayscale(.4)}
 .type-tag{font-size:var(--fs-xs);color:var(--muted);font-family:'Syne',sans-serif;font-weight:700;letter-spacing:.4px;text-transform:uppercase;flex-shrink:0}
 
 .ed-controls{
@@ -479,20 +505,20 @@ body{
   padding:0 4px;height:clamp(36px,9vw,44px);line-height:clamp(36px,9vw,44px);
 }
 
-/* Editor table container – ahora con scroll y altura máxima */
+/* Editor table container */
 .ed-table-wrap{
   flex:1;overflow:auto;overscroll-behavior:contain;
   padding:clamp(10px,3vw,14px) clamp(8px,2.5vw,12px) 0;
   background:var(--bg);
-  max-height: calc(100vh - 320px); /* para dejar espacio al panel sticky */
 }
 /* ═══════════════════════════════════════════════════════════
    TABLA EDITABLE – VERSIÓN CORREGIDA PARA MÓVILES REALES
 ═══════════════════════════════════════════════════════════ */
 .etable {
   border-collapse: collapse;
-  table-layout: fixed;           /* 🔑 Clave: reparte el ancho disponible */
-  width: 100%;                   /* Ocupa todo el contenedor */
+  table-layout: fixed;
+  width: max-content;  /* crece para respetar min-width de columnas → ed-table-wrap scrollea */
+  min-width: 100%;     /* con pocas columnas, llena el contenedor */
 }
 
 .etable .ch {
@@ -672,7 +698,12 @@ body{
 .fin-mark:active{opacity:.75}
 
 /* ═══════════════════════════════════════════════════════════  SETTINGS DRAWER */
-#cfg-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:809}
+#cfg-overlay{
+  display:none;position:fixed;inset:0;
+  background:rgba(0,0,0,.55);z-index:809;
+  cursor:pointer; /* indica que es clickeable */
+}
+#cfg-overlay.open{display:block}
 #cfg-drawer{
   position:fixed;top:0;left:0;bottom:0;
   /* Ancho mínimo 260px, ideal = 20× la fuente, máximo 92vw o 560px.
@@ -727,7 +758,7 @@ input[type=range].font-range::-webkit-slider-thumb{-webkit-appearance:none;width
   display:flex;align-items:center;gap:8px;padding:8px 10px;
   background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);
 }
-.cat-dot{width:14px;height:14px;border-radius:50%;flex-shrink:0;border:2px solid rgba(0,0,0,.2)}
+.cat-dot{width:18px;height:18px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
 .cat-name{flex:1;font-family:'Syne',sans-serif;font-weight:600;font-size:var(--fs-sm);color:var(--text);min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .cat-del{width:28px;height:28px;border-radius:50%;background:transparent;border:1px solid var(--border);color:var(--muted);font-size:var(--fs-sm);display:flex;align-items:center;justify-content:center;cursor:pointer}
 .cat-del:active{background:var(--d-dim);color:var(--danger);border-color:var(--danger)}
@@ -765,7 +796,8 @@ input[type=range].font-range::-webkit-slider-thumb{-webkit-appearance:none;width
 .mfull{flex:1}
 
 /* ═══════════════════════════════════════════════════════════  DELETE MODAL */
-.del-icon{width:clamp(52px,14vw,64px);height:clamp(52px,14vw,64px);border-radius:50%;background:var(--d-dim);border:1px solid rgba(232,91,91,.3);display:flex;align-items:center;justify-content:center;font-size:calc(var(--fs)*1.8);margin:0 auto 14px}
+.del-icon{width:clamp(52px,14vw,64px);height:clamp(52px,14vw,64px);border-radius:50%;background:var(--d-dim);border:1px solid rgba(232,91,91,.3);display:flex;align-items:center;justify-content:center;margin:0 auto 14px}
+.del-icon svg{width:clamp(24px,6vw,30px);height:clamp(24px,6vw,30px)}
 .del-title{font-family:'Syne',sans-serif;font-weight:800;font-size:var(--fs-xl);color:var(--text);text-align:center;margin-bottom:8px}
 #del-msg{font-size:var(--fs-sm);color:var(--muted);line-height:1.6;text-align:center;margin-bottom:clamp(16px,5vw,22px)}
 #del-msg strong{color:var(--text);font-weight:600}
@@ -782,26 +814,92 @@ input[type=range].font-range::-webkit-slider-thumb{-webkit-appearance:none;width
   transition:border-color .18s,background .18s;
 }
 .tpl-card:active{background:var(--surface3);border-color:var(--accent)}
-.tpl-ico{font-size:calc(var(--fs)*1.8);margin-bottom:8px}
+.tpl-ico{
+  width:clamp(44px,11vw,52px);height:clamp(44px,11vw,52px);
+  margin:0 auto 10px;border-radius:var(--r-md);
+  background:var(--surface3);border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+}
+.tpl-ico svg{width:clamp(22px,5.5vw,26px);height:clamp(22px,5.5vw,26px)}
 .tpl-name{font-family:'Syne',sans-serif;font-weight:700;font-size:var(--fs-sm);color:var(--text)}
 .tpl-desc{font-size:var(--fs-xs);color:var(--muted);margin-top:3px;line-height:1.4}
 
 /* ═══════════════════════════════════════════════════════════  QUICK NOTES */
 #note-area{
-  width:100%;min-height:140px;max-height:200px;
-  background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-md);
-  padding:12px;color:var(--text);font-family:'IBM Plex Mono',monospace;
-  font-size:var(--fs-md);outline:none;resize:none;line-height:1.65;
+  width:100%;min-height:150px;max-height:220px;
+  background:transparent;border:none;border-radius:0;
+  padding:0;color:var(--text);font-family:'IBM Plex Mono',monospace;
+  font-size:var(--fs-md);outline:none;resize:none;line-height:1.75;
 }
-#note-area:focus{border-color:var(--accent)}
 #note-area::placeholder{color:var(--muted)}
-.note-hint{font-size:var(--fs-xs);color:var(--muted);line-height:1.6;margin-top:8px}
+.note-body-wrap{
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:var(--r-md);padding:12px 14px;
+}
+.note-hint{font-size:var(--fs-xs);color:var(--muted);line-height:1.6;margin-top:10px;
+  padding:8px 12px;background:var(--surface3);border-radius:var(--r-sm);
+  border-left:2px solid rgba(232,184,75,.4);}
 .note-hint strong{color:var(--accent)}
 #note-preview{
   margin-top:10px;display:none;background:var(--bg);border:1px solid var(--border);
   border-radius:var(--r-sm);overflow-x:auto;
 }
 #note-preview.show{display:block}
+/* Botones nota en columna cuando no hay espacio */
+.note-foot{
+  display:flex;flex-direction:column;gap:8px;padding:0 18px 18px;
+}
+.note-foot-row{display:flex;gap:8px;}
+
+/* ═══  NOTA CARD en feed (estilo bloc de notas) ═══ */
+.note-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--shadow);
+  cursor:pointer;animation:pop .28s cubic-bezier(.2,.8,.3,1) both;
+  transition:border-color .18s,box-shadow .18s;
+}
+.note-card:active{border-color:var(--accent);box-shadow:0 0 0 2px var(--a-dim),var(--shadow)}
+.note-card-head{
+  padding:clamp(10px,3vw,14px) clamp(10px,3vw,14px) 6px;
+  background:var(--surface2);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:10px;
+}
+.note-card-icon{
+  width:clamp(30px,7.5vw,36px);height:clamp(30px,7.5vw,36px);
+  border-radius:var(--r-sm);background:rgba(232,184,75,.1);
+  border:1px solid rgba(232,184,75,.25);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.note-card-icon svg{width:16px;height:16px;fill:var(--accent)}
+.note-card-title{
+  font-family:'Syne',sans-serif;font-weight:700;font-size:var(--fs-md);
+  flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.note-card-date{font-size:var(--fs-xs);color:var(--muted);margin-top:1px}
+.note-card-body{
+  padding:clamp(10px,3vw,14px);
+  font-family:'IBM Plex Mono',monospace;font-size:var(--fs-sm);
+  color:var(--text);line-height:1.7;
+  /* Mostrar máx 6 líneas */
+  display:-webkit-box;-webkit-line-clamp:6;-webkit-box-orient:vertical;overflow:hidden;
+  white-space:pre-wrap;word-break:break-word;
+}
+.note-card-footer{
+  padding:6px clamp(10px,3vw,14px) clamp(10px,3vw,12px);
+  display:flex;align-items:center;justify-content:space-between;
+  border-top:1px solid var(--border);background:var(--surface2);
+}
+.note-card-label{
+  font-family:'Syne',sans-serif;font-weight:700;font-size:var(--fs-xs);
+  letter-spacing:.5px;text-transform:uppercase;color:var(--muted);
+}
+.note-card-del{
+  width:28px;height:28px;border-radius:50%;background:transparent;
+  border:1px solid var(--border);color:var(--muted);
+  display:flex;align-items:center;justify-content:center;cursor:pointer;
+  font-size:var(--fs-sm);transition:background .15s,color .15s,border-color .15s;
+}
+.note-card-del:active{background:var(--d-dim);color:var(--danger);border-color:var(--danger)}
 
 /* ═══════════════════════════════════════════════════════════  CATEGORY CREATE MODAL */
 #cat-name-inp{
@@ -837,7 +935,7 @@ input[type=range].font-range::-webkit-slider-thumb{-webkit-appearance:none;width
 }
 .imp-option:last-child{border-bottom:none}
 .imp-option:active{background:var(--surface2)}
-.imp-dot{width:16px;height:16px;border-radius:50%;flex-shrink:0}
+.imp-dot{width:20px;height:20px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
 .imp-opt-lbl{font-family:'Syne',sans-serif;font-weight:700;font-size:var(--fs-lg);color:var(--text)}
 .imp-opt-desc{font-size:var(--fs-sm);color:var(--muted)}
 .imp-check{margin-left:auto;font-size:var(--fs-lg);color:var(--accent)}
@@ -995,8 +1093,20 @@ input[type=range].font-range::-webkit-slider-thumb{-webkit-appearance:none;width
 
 <!-- ═══════════════════════════════════════  WELCOME -->
 <div id="v-welcome">
-  <div class="wlc-icon">👋</div>
-  <div class="wlc-title">Hola, bienvenido</div>
+  <div class="wlc-icon">
+    <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="4"  y="4"  width="22" height="22" rx="5" fill="#E8B84B" opacity=".95"/>
+      <rect x="30" y="4"  width="22" height="22" rx="5" fill="#4B8FE8" opacity=".7"/>
+      <rect x="56" y="4"  width="20" height="22" rx="5" fill="#1C2E45"/>
+      <rect x="4"  y="30" width="22" height="22" rx="5" fill="#1C2E45"/>
+      <rect x="30" y="30" width="22" height="22" rx="5" fill="#E8B84B" opacity=".6"/>
+      <rect x="56" y="30" width="20" height="22" rx="5" fill="#4B8FE8" opacity=".85"/>
+      <rect x="4"  y="56" width="22" height="20" rx="5" fill="#4B8FE8" opacity=".5"/>
+      <rect x="30" y="56" width="22" height="20" rx="5" fill="#1C2E45"/>
+      <rect x="56" y="56" width="20" height="20" rx="5" fill="#E8B84B" opacity=".85"/>
+    </svg>
+  </div>
+  <div class="wlc-title">Bienvenido a DataGrid</div>
   <div class="wlc-msg">
     <strong>DataGrid</strong> es tu cuaderno digital para registrar tablas, llevar cuentas y organizar información en segundos.<br><br>
     Hagamos un recorrido rápido para que lo domines desde el primer día.
@@ -1029,7 +1139,15 @@ input[type=range].font-range::-webkit-slider-thumb{-webkit-appearance:none;width
 
   <div id="feed-scroll">
     <div class="empty" id="empty-state">
-      <div class="empty-icon">⊞</div>
+      <div class="empty-icon">
+        <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="4" y="4" width="18" height="18" rx="3" fill="var(--surface3)" stroke="var(--border)" stroke-width="1.5"/>
+          <rect x="26" y="4" width="18" height="18" rx="3" fill="var(--surface3)" stroke="var(--border)" stroke-width="1.5"/>
+          <rect x="4" y="26" width="18" height="18" rx="3" fill="var(--surface3)" stroke="var(--border)" stroke-width="1.5"/>
+          <rect x="26" y="26" width="18" height="18" rx="3" fill="var(--a-dim)" stroke="rgba(232,184,75,.3)" stroke-width="1.5"/>
+          <path d="M35 31v10M30 36h10" stroke="var(--accent)" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </div>
       <h3>Sin registros todavía</h3>
       <p>Toca el botón <strong>+</strong> para crear tu primera tabla.</p>
     </div>
@@ -1040,10 +1158,14 @@ input[type=range].font-range::-webkit-slider-thumb{-webkit-appearance:none;width
 <div id="fab-wrap" style="display:none">
   <div id="fab-menu">
     <div class="fab-item" onclick="openQuickNote()">
-      <div class="fab-item-ico gold">📝</div>Nota rápida
+      <div class="fab-item-ico gold">
+        <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8L14 2zm0 2l4 4h-4V4zM8 13h8v1.5H8V13zm0 3h8v1.5H8V16zm0-6h3v1.5H8V10z"/></svg>
+      </div>Nota rápida
     </div>
     <div class="fab-item" onclick="openTemplatePicker()">
-      <div class="fab-item-ico blue">➕</div>Nueva tabla
+      <div class="fab-item-ico blue">
+        <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/></svg>
+      </div>Nueva tabla
     </div>
   </div>
   <button id="fab-btn" onclick="toggleFab()">
@@ -1060,15 +1182,24 @@ input[type=range].font-range::-webkit-slider-thumb{-webkit-appearance:none;width
   </div>
 
   <div class="ed-meta-row">
-    <button class="meta-chip" id="cat-chip" onclick="openCatPick()">🏷 Sin categoría</button>
-    <button class="meta-chip" id="imp-chip" onclick="openImpSheet()">⚡ Importancia</button>
+    <button class="meta-chip" id="cat-chip" onclick="openCatPick()">Sin categoría</button>
+    <button class="meta-chip" id="imp-chip" onclick="openImpSheet()">Importancia</button>
   </div>
 
   <div class="ed-type-row" id="ed-type-row">
     <span class="type-tag">Tipo:</span>
-    <div class="type-chip active" data-type="info"    onclick="setType('info')">📋 Información</div>
-    <div class="type-chip"       data-type="numeric"  onclick="setType('numeric')">🔢 Cálculos</div>
-    <div class="type-chip"       data-type="finance"  onclick="setType('finance')">💰 Finanzas</div>
+    <div class="type-chip active" data-type="info" onclick="setType('info')">
+      <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor" style="margin-right:4px;vertical-align:-1px"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8L14 2zm0 2l4 4h-4V4zM8 13h8v1.5H8V13zm0 3h8v1.5H8V16zm0-6h3v1.5H8V10z"/></svg>
+      Información
+    </div>
+    <div class="type-chip" data-type="numeric" onclick="setType('numeric')">
+      <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor" style="margin-right:4px;vertical-align:-1px"><path d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zm-7 3l1.5 3H16l-2.5 2 1 3L12 13.5 9.5 15l1-3L8 10h2.5L12 7zm-5 9h10v1.5H7V16z"/></svg>
+      Cálculos
+    </div>
+    <div class="type-chip" data-type="finance" onclick="setType('finance')">
+      <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor" style="margin-right:4px;vertical-align:-1px"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg>
+      Finanzas
+    </div>
   </div>
 
   <div class="ed-controls">
@@ -1142,7 +1273,7 @@ input[type=range].font-range::-webkit-slider-thumb{-webkit-appearance:none;width
           <div class="cfg-desc">Escala todo el texto de la aplicación</div>
         </div>
         <div class="font-ctrl-row">
-          <input type="range" class="font-range" id="font-range" min="12" max="24" value="16" oninput="applyFont(this.value)">
+          <input type="range" class="font-range" id="font-range" min="10" max="16" value="16" oninput="applyFont(this.value)">
           <span class="font-badge" id="font-badge">16px</span>
         </div>
       </div>
@@ -1158,18 +1289,6 @@ input[type=range].font-range::-webkit-slider-thumb{-webkit-appearance:none;width
     </div>
     <div class="cfg-section">
       <div class="cfg-section-title">Tablas</div>
-      <div class="cfg-item soon">
-        <div class="cfg-labels"><div class="cfg-label">Cuadrícula por defecto</div><div class="cfg-desc">Filas y columnas al crear nueva tabla</div></div>
-        <span class="badge-soon">Pronto</span>
-      </div>
-            <!-- Botón para reiniciar el tutorial (visible siempre) -->
-      <div class="cfg-item" style="padding: 12px 0;">
-        <div class="cfg-labels">
-          <div class="cfg-label">Tutorial</div>
-          <div class="cfg-desc">Vuelve a ver el recorrido guiado</div>
-        </div>
-        <button class="btn-primary" style="height: 36px; padding: 0 14px; font-size: var(--fs-sm);" onclick="restartTutorial()">Reiniciar</button>
-      </div>
       <div class="cfg-item soon">
         <div class="cfg-labels"><div class="cfg-label">Exportar datos</div><div class="cfg-desc">Exporta en CSV o JSON</div></div>
         <span class="badge-soon">Pronto</span>
@@ -1192,12 +1311,27 @@ input[type=range].font-range::-webkit-slider-thumb{-webkit-appearance:none;width
 <!-- ═══════════════════════════════════════  DELETE MODAL -->
 <div id="del-modal" class="modal-bg" onclick="if(event.target===this)cancelDel()">
   <div class="modal-box" style="padding:20px;text-align:center">
-    <div class="del-icon">🗑</div>
+    <div class="del-icon">
+      <svg viewBox="0 0 24 24" fill="var(--danger)" xmlns="http://www.w3.org/2000/svg"><path d="M6 19a2 2 0 002 2h8a2 2 0 002-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+    </div>
     <div class="del-title">Eliminar tabla</div>
     <p id="del-msg"></p>
     <div style="display:flex;gap:10px">
       <button class="del-cancel mfull" onclick="cancelDel()">Cancelar</button>
       <button class="del-confirm mfull" onclick="execDel()">Sí, eliminar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════  FONT CONFIRM MODAL -->
+<div id="font-confirm-modal" class="modal-bg">
+  <div class="modal-box" style="padding:24px 20px;text-align:center;max-width:320px">
+    <div style="font-size:2em;margin-bottom:10px">🔤</div>
+    <div class="del-title" style="margin-bottom:8px">¿Aplicar cambios?</div>
+    <p style="font-size:var(--fs-sm);color:var(--muted);line-height:1.6;margin-bottom:20px">El tamaño de fuente cambiará a <strong id="font-confirm-val" style="color:var(--accent)"></strong>. La pantalla se recargará brevemente.</p>
+    <div style="display:flex;gap:10px">
+      <button class="del-cancel mfull" onclick="cancelFontChange()">Cancelar</button>
+      <button class="del-confirm mfull" onclick="confirmFontChange()">Sí, aplicar</button>
     </div>
   </div>
 </div>
@@ -1212,22 +1346,30 @@ input[type=range].font-range::-webkit-slider-thumb{-webkit-appearance:none;width
     <div class="modal-body">
       <div class="tpl-grid" id="tpl-grid">
         <div class="tpl-card" onclick="pickTpl('finance')">
-          <div class="tpl-ico">💰</div>
+          <div class="tpl-ico">
+            <svg viewBox="0 0 24 24" fill="var(--accent)" xmlns="http://www.w3.org/2000/svg"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg>
+          </div>
           <div class="tpl-name">Finanzas</div>
           <div class="tpl-desc">Ingresos, gastos y balance</div>
         </div>
         <div class="tpl-card" onclick="pickTpl('numeric')">
-          <div class="tpl-ico">📦</div>
+          <div class="tpl-ico">
+            <svg viewBox="0 0 24 24" fill="var(--blue)" xmlns="http://www.w3.org/2000/svg"><path d="M20 2H4a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2zm-9 14H7v-2h4v2zm6 0h-4v-2h4v2zm0-4H7v-2h10v2zm0-4H7V6h10v2z"/></svg>
+          </div>
           <div class="tpl-name">Inventario</div>
           <div class="tpl-desc">Productos y cantidades</div>
         </div>
         <div class="tpl-card" onclick="pickTpl('contacts')">
-          <div class="tpl-ico">👥</div>
+          <div class="tpl-ico">
+            <svg viewBox="0 0 24 24" fill="var(--green)" xmlns="http://www.w3.org/2000/svg"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+          </div>
           <div class="tpl-name">Contactos</div>
           <div class="tpl-desc">Nombres y datos de contacto</div>
         </div>
         <div class="tpl-card" onclick="pickTpl('custom')">
-          <div class="tpl-ico">⊞</div>
+          <div class="tpl-ico">
+            <svg viewBox="0 0 24 24" fill="var(--muted)" xmlns="http://www.w3.org/2000/svg"><path d="M3 3h8v8H3V3zm0 10h8v8H3v-8zm10-10h8v8h-8V3zm0 10h8v8h-8v-8z"/></svg>
+          </div>
           <div class="tpl-name">Personalizada</div>
           <div class="tpl-desc">Desde cero</div>
         </div>
@@ -1238,20 +1380,24 @@ input[type=range].font-range::-webkit-slider-thumb{-webkit-appearance:none;width
 
 <!-- ═══════════════════════════════════════  QUICK NOTES MODAL -->
 <div id="note-modal" class="modal-bg" onclick="if(event.target===this)closeNote()">
-  <div class="modal-box" style="max-width:380px">
+  <div class="modal-box" style="max-width:400px">
     <div class="modal-header">
       <span class="modal-title">Nota rápida</span>
       <button class="modal-close" onclick="closeNote()">✕</button>
     </div>
     <div class="modal-body">
-      <textarea id="note-area" placeholder="Escribe tu información aquí…&#10;&#10;Separa columnas con | :&#10;Nombre | Precio | Cantidad&#10;Manzanas | $50 | 10" oninput="previewNote()"></textarea>
-      <div class="note-hint">Usa <strong>|</strong> para separar columnas. La primera línea será el encabezado. O escribe libremente y lo organizamos.</div>
+      <div class="note-body-wrap">
+        <textarea id="note-area" placeholder="Escribe aquí tu nota…" oninput="previewNote()"></textarea>
+      </div>
+      <div class="note-hint">Para convertir a tabla usa <strong>|</strong> como separador entre columnas. Ejemplo: <strong>Nombre | Precio | Stock</strong></div>
       <div id="note-preview"></div>
     </div>
-    <div class="modal-foot">
-      <button class="del-cancel mfull" onclick="closeNote()">Cancelar</button>
-      <button class="btn-save mfull" style="height:44px;flex:1" onclick="saveNoteOnly()">Guardar nota</button>
-      <button class="btn-save mfull" style="height:44px;flex:1" onclick="convertNote()">Convertir a tabla →</button>
+    <div class="note-foot">
+      <div class="note-foot-row">
+        <button class="btn-save mfull" style="height:44px;flex:1" onclick="saveNoteOnly()">Guardar nota</button>
+        <button id="btn-convert-note" class="btn-save mfull" style="height:44px;flex:1;background:var(--blue);display:none" onclick="convertNote()">Convertir a tabla</button>
+      </div>
+      <button class="del-cancel" style="height:40px;width:100%" onclick="closeNote()">Cancelar</button>
     </div>
   </div>
 </div>
@@ -1281,22 +1427,22 @@ input[type=range].font-range::-webkit-slider-thumb{-webkit-appearance:none;width
   <div class="sheet-pill"></div>
   <div class="sheet-ht">Nivel de importancia</div>
   <div class="imp-option" onclick="pickImp('alta')">
-    <div class="imp-dot" style="background:#E85B5B"></div>
+    <div class="imp-dot"><svg viewBox="0 0 24 24" width="20" height="20" fill="#E85B5B"><path d="M14.4 6L14 4H5v17h2v-7h5.6l.4 2h7V6z"/></svg></div>
     <div><div class="imp-opt-lbl">Alta</div><div class="imp-opt-desc">Urgente o crítico — acceso frecuente</div></div>
     <span class="imp-check" id="ich-alta"></span>
   </div>
   <div class="imp-option" onclick="pickImp('media')">
-    <div class="imp-dot" style="background:#E8B84B"></div>
+    <div class="imp-dot"><svg viewBox="0 0 24 24" width="20" height="20" fill="#E8B84B" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="5.5" width="20" height="1.5" rx="0.75"/><circle cx="12" cy="6.25" r="1.75"/><rect x="11.25" y="7.75" width="1.5" height="12.75"/><rect x="8" y="20.5" width="8" height="1.5" rx="0.75"/><rect x="2.5" y="7" width="1.2" height="5"/><rect x="20.3" y="7" width="1.2" height="5"/><path d="M1 12c0 0 .8 4 2.5 4s2.5-4 2.5-4H1z"/><path d="M18 12c0 0 .8 4 2.5 4s2.5-4 2.5-4H18z"/></svg></div>
     <div><div class="imp-opt-lbl">Media</div><div class="imp-opt-desc">Importante pero no urgente</div></div>
     <span class="imp-check" id="ich-media"></span>
   </div>
   <div class="imp-option" onclick="pickImp('baja')">
-    <div class="imp-dot" style="background:#4B8FE8"></div>
+    <div class="imp-dot"><svg viewBox="0 0 24 24" width="20" height="20" fill="#4B8FE8"><path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg></div>
     <div><div class="imp-opt-lbl">Baja</div><div class="imp-opt-desc">Referencia o información general</div></div>
     <span class="imp-check" id="ich-baja"></span>
   </div>
   <div class="imp-option" onclick="pickImp(null)">
-    <div class="imp-dot" style="background:var(--border)"></div>
+    <div class="imp-dot"><svg viewBox="0 0 24 24" width="20" height="20" fill="var(--border)"><path d="M19 13H5v-2h14v2z"/></svg></div>
     <div><div class="imp-opt-lbl">Sin nivel</div><div class="imp-opt-desc">Sin indicador de importancia</div></div>
     <span class="imp-check" id="ich-none"></span>
   </div>
@@ -1340,9 +1486,14 @@ function cfgSave(){lsSet(CFG_KEY,cfg)}
 //  FONT SCALING
 // ═══════════════════════════════════════════════════
 function setFs(v){document.documentElement.style.setProperty('--fs',v+'px')}
+// Valor pendiente del slider — se aplica solo al confirmar al cerrar cfg
+let _pendingFontSize = cfg.fontSize;
+let _fontSizeAtOpen  = cfg.fontSize;
+
 function applyFont(v){
-  cfg.fontSize=parseInt(v);cfgSave();setFs(cfg.fontSize);
-  document.getElementById('font-badge').textContent=cfg.fontSize+'px';
+  _pendingFontSize = parseInt(v);
+  document.getElementById('font-badge').textContent = _pendingFontSize + 'px';
+  // Sin setFs aquí — se aplica al confirmar al cerrar la ventana
 }
 setFs(cfg.fontSize);
 
@@ -1377,108 +1528,108 @@ const TUT_STEPS=[
   // 1
   {id:'intro',
    target:null,
-   title:'Bienvenido a DataGrid 👋',
-   msg:'Esta es tu <strong>pantalla principal</strong>. Aquí aparecerán todas tus tablas como tarjetas grandes y fáciles de leer. Desplázate hacia abajo para verlas todas. Toca <strong>Siguiente</strong> para comenzar el recorrido.',
+   title:'Bienvenido a DataGrid',
+   msg:'Esta es su <strong>pantalla principal</strong>. Aquí aparecerán todas sus tablas como tarjetas grandes y fáciles de leer. Desplácese hacia abajo para verlas todas. Toque <strong>Siguiente</strong> para comenzar el recorrido.',
    wait:'btn',btn:'Siguiente →'},
   // 2
   {id:'fab',
    target:'#fab-btn',
-   title:'El botón dorado ＋',
-   msg:'¿Ves el <strong>círculo dorado</strong> en la esquina inferior derecha? Ese es tu punto de partida para todo. Con él puedes crear tablas nuevas o escribir notas rápidas. <strong>Tócalo ahora mismo</strong> para continuar.',
+   title:'El botón de acción',
+   msg:'Vea el <strong>círculo dorado</strong> en la esquina inferior derecha. Ese es su punto de partida para todo. Con él puede crear tablas nuevas o escribir notas rápidas. <strong>Tóquelo ahora</strong> para continuar.',
    wait:'tap'},
-  // 3  ← NUEVO: explicación de plantillas antes de elegir
+  // 3
   {id:'template-info',
    target:'#tpl-modal .modal-box',
-   title:'¿Qué tipo de tabla necesitas? 📋',
-   msg:'Estas son las 4 plantillas disponibles. Cada una ya tiene las columnas listas:\n\n• <strong>💰 Finanzas</strong> — llevar ingresos y gastos\n• <strong>📦 Inventario</strong> — productos y cantidades\n• <strong>👥 Contactos</strong> — nombres y teléfonos\n• <strong>⊞ Personalizada</strong> — tú pones todo desde cero\n\nToca <strong>Siguiente</strong> cuando hayas visto las opciones.',
+   title:'Seleccione el tipo de tabla',
+   msg:'Estas son las 4 plantillas disponibles. Cada una ya tiene las columnas listas:\n\n• <strong>Finanzas</strong> — ingresos y gastos\n• <strong>Inventario</strong> — productos y cantidades\n• <strong>Contactos</strong> — nombres y teléfonos\n• <strong>Personalizada</strong> — usted define todo desde cero\n\nToque <strong>Siguiente</strong> cuando haya visto las opciones.',
    wait:'btn',btn:'Siguiente →'},
   // 4
   {id:'template',
    target:'#tpl-modal .modal-box',
-   title:'Elige una plantilla 👆',
-   msg:'Ahora <strong>toca una de las 4 opciones</strong> para crear tu primera tabla y continuar el recorrido.',
+   title:'Elija una plantilla',
+   msg:'Ahora <strong>toque una de las 4 opciones</strong> para crear su primera tabla y continuar el recorrido.',
    wait:'tap'},
   // 5
   {id:'type',
    target:'#ed-type-row',
-   title:'Tipo de tabla 🔢',
-   msg:'Aquí defines <strong>qué hará</strong> tu tabla:\n• <strong>📋 Información</strong>: texto libre, sin cálculos\n• <strong>🔢 Cálculos</strong>: suma, resta, multiplica o divide celdas\n• <strong>💰 Finanzas</strong>: marca celdas como ingreso o gasto y ve tu balance\n\nEl tipo ya viene elegido según la plantilla. Toca <strong>Siguiente</strong>.',
+   title:'Tipo de tabla',
+   msg:'Aquí define <strong>qué hará</strong> su tabla:\n• <strong>Información</strong>: texto libre, sin cálculos\n• <strong>Cálculos</strong>: suma, resta, multiplica o divide celdas\n• <strong>Finanzas</strong>: marque celdas como ingreso o gasto y vea su balance\n\nEl tipo ya viene seleccionado según la plantilla. Toque <strong>Siguiente</strong>.',
    wait:'btn',btn:'Siguiente →'},
-  // 6  ← NUEVO: explicación de importancia antes de abrir el sheet
+  // 6
   {id:'importance-info',
    target:'#imp-chip',
-   title:'Nivel de importancia ⚡',
-   msg:'Este botón asigna una <strong>prioridad</strong> a tu tabla para que sepas cuáles revisar primero:\n\n• <strong>🔴 Alta</strong> — urgente, la necesitas a diario\n• <strong>🟡 Media</strong> — importante pero sin prisa\n• <strong>🔵 Baja</strong> — referencia o archivo\n\n<strong>Toca el botón ⚡ Importancia</strong> para continuar.',
+   title:'Nivel de importancia',
+   msg:'Este botón asigna una <strong>prioridad</strong> a su tabla para saber cuáles revisar primero:\n\n• <strong>Alta</strong> — urgente, la necesita a diario\n• <strong>Media</strong> — importante pero sin prisa\n• <strong>Baja</strong> — referencia o archivo\n\n<strong>Toque el botón Importancia</strong> para continuar.',
    wait:'tap'},
   // 7
   {id:'importance',
    target:'#imp-chip',
-   title:'Elige tu nivel ahora 👆',
-   msg:'Toca el botón <strong>⚡ Importancia</strong> y selecciona un nivel de la lista que aparece.',
+   title:'Elija su nivel ahora',
+   msg:'Toque el botón <strong>Importancia</strong> y seleccione un nivel de la lista que aparece.',
    wait:'tap',
    customAction:()=>{ setTimeout(openImpSheet,120); }},
   // 8
   {id:'name',
    target:'#inp-name',
-   title:'Dale un nombre ✏️',
-   msg:'Escribe un nombre descriptivo para tu tabla, por ejemplo: <strong>"Gastos de enero"</strong>, <strong>"Inventario tienda"</strong> o <strong>"Lista de clientes"</strong>.\n\nCuando hayas escrito algo aparecerá el botón para continuar.',
+   title:'Asigne un nombre',
+   msg:'Escriba un nombre descriptivo para su tabla. Por ejemplo: <strong>"Gastos de enero"</strong>, <strong>"Inventario tienda"</strong> o <strong>"Lista de clientes"</strong>.\n\nCuando haya escrito algo aparecerá el botón para continuar.',
    wait:'fill',btn:'Continuar →',
    fillCheck:()=>document.getElementById('inp-name').value.trim().length>0},
-  // 9  ← NUEVO: explicación de la cuadrícula antes de rellenar
+  // 9
   {id:'grid-info',
    target:'#etable',
-   title:'Así se rellena la tabla 📝',
-   msg:'La cuadrícula ya tiene columnas según la plantilla elegida. Así funciona:\n\n• La <strong>columna azul</strong> (izquierda) es para nombres de fila, por ejemplo "Enero", "Manzanas" o "Ana"\n• El <strong>resto de columnas</strong> son para los valores\n• Toca cualquier celda y escribe directamente\n\nToca <strong>Siguiente</strong> para empezar a escribir.',
+   title:'Cómo rellenar la tabla',
+   msg:'La cuadrícula ya tiene columnas según la plantilla elegida. Así funciona:\n\n• La <strong>columna izquierda</strong> (azul) es para nombres de fila, por ejemplo "Enero", "Manzanas" o "Ana"\n• El <strong>resto de columnas</strong> son para los valores\n• Toque cualquier celda y escriba directamente\n\nToque <strong>Siguiente</strong> para comenzar a escribir.',
    wait:'btn',btn:'Siguiente →'},
   // 10
   {id:'grid',
    target:'#etable',
-   title:'Escribe al menos un dato 👆',
-   msg:'Toca cualquier celda de la cuadrícula y escribe un valor. Cuando lo hayas hecho, aparecerá el botón para continuar.',
+   title:'Ingrese al menos un dato',
+   msg:'Toque cualquier celda de la cuadrícula y escriba un valor. Cuando lo haya hecho, aparecerá el botón para continuar.',
    wait:'fill',btn:'Continuar →',
    fillCheck:()=>[...document.querySelectorAll('#etable td.dc input')].some(i=>i.value.trim())},
   // 11
   {id:'save',
    target:'#btn-save-main',
-   title:'Guarda tu tabla 💾',
-   msg:'Ya tienes datos. Ahora toca el botón <strong>✓ Guardar</strong> de arriba a la derecha.\n\nTu tabla quedará guardada y aparecerá en la pantalla principal.',
+   title:'Guarde su tabla',
+   msg:'Ya tiene datos. Ahora toque el botón <strong>Guardar</strong> arriba a la derecha.\n\nSu tabla quedará guardada y aparecerá en la pantalla principal.',
    wait:'tap'},
-    // 12
+  // 12
   {id:'bubble',
    target:'#feed-scroll',
-   title:'Tu tabla guardada 🎉',
-   msg:'¡Aquí está! Tu tabla aparece como una <strong>burbuja grande</strong> con toda la información visible de un vistazo.\n\nToca <strong>Siguiente</strong> para continuar.',
+   title:'Su tabla está guardada',
+   msg:'¡Aquí está! Su tabla aparece como una <strong>tarjeta</strong> con toda la información visible de un vistazo.\n\nToque <strong>Siguiente</strong> para continuar.',
    wait:'btn',btn:'Siguiente →'},
   // 13
   {id:'search',
    target:'#search-bar',
-   title:'Búsqueda rápida 🔍',
-   msg:'Cuando tengas muchas tablas, escribe aquí el nombre de una tabla o categoría y el listado se filtra al instante.\n\nToca <strong>Siguiente</strong> para ver las categorías.',
+   title:'Búsqueda rápida',
+   msg:'Cuando tenga muchas tablas, escriba aquí el nombre de una tabla o categoría y el listado se filtra al instante.\n\nToque <strong>Siguiente</strong> para ver las categorías.',
    wait:'btn',btn:'Siguiente →'},
   // 14
   {id:'category',
    target:'#btn-settings',
-   title:'Categorías de color 🏷',
-   msg:'Las categorías agrupan tablas con una banda de color. Por ejemplo: "Trabajo" en azul, "Casa" en verde.\n\nToca el <strong>engranaje ⚙</strong> arriba a la derecha para abrir Configuración y crear tu primera categoría.',
+   title:'Categorías de color',
+   msg:'Las categorías agrupan tablas con una banda de color. Por ejemplo: "Trabajo" en azul, "Casa" en verde.\n\nToque el <strong>engranaje</strong> arriba a la derecha para abrir Configuración y crear su primera categoría.',
    wait:'tap'},
   // 15
   {id:'delete',
    target:'.btn-del',
-   title:'Eliminar una tabla 🗑',
-   msg:'Para borrar una tabla, toca el botón <strong>✕</strong> en la esquina de cualquier burbuja. Se abrirá una ventana de confirmación.\n\n<strong>Toca el ✕ de cualquier burbuja ahora.</strong>',
+   title:'Eliminar una tabla',
+   msg:'Para borrar una tabla, toque el botón <strong>✕</strong> en la esquina de cualquier tarjeta. Se abrirá una ventana de confirmación.\n\n<strong>Toque el ✕ de cualquier tarjeta ahora.</strong>',
    wait:'tap'},
   // 16
   {id:'delete-confirm',
    target:'#del-modal .modal-box',
-   title:'Confirma la eliminación',
-   msg:'Esta ventana evita borrados accidentales.\n\nPuedes tocar <strong>"Cancelar"</strong> o <strong>"Sí, eliminar"</strong>.\n\n<strong>Toca cualquiera de los dos para finalizar el recorrido.</strong>',
+   title:'Confirme la eliminación',
+   msg:'Esta ventana evita borrados accidentales.\n\nPuede tocar <strong>"Cancelar"</strong> o <strong>"Sí, eliminar"</strong>.\n\n<strong>Toque cualquiera de los dos para finalizar el recorrido.</strong>',
    wait:'modal-action'},
   // 17
   {id:'done',
    target:null,
-   title:'¡Lo lograste! 🎉',
-   msg:'Ya conoces DataGrid. Puedes crear tablas de <strong>finanzas, inventario o personalizadas</strong>, usar notas rápidas y buscar todo al instante.',
-   wait:'btn',btn:'¡Empezar!',final:true}
+   title:'Recorrido completado',
+   msg:'Ya conoce DataGrid. Puede crear tablas de <strong>finanzas, inventario o personalizadas</strong>, usar notas rápidas y buscar todo al instante.',
+   wait:'btn',btn:'Comenzar',final:true}
 ];
 
 let tutStep=0, tutActive=false, tutInterval=null;
@@ -1918,8 +2069,11 @@ function openTemplatePicker(){
 }
 function closeTpl(){ document.getElementById('tpl-modal').classList.remove('open'); }
 
+let activeTplKey=null; // plantilla activa para controlar qué tipos están disponibles
+
 function pickTpl(key){
   const tpl=TEMPLATES[key];
+  activeTplKey=key;
   closeTpl();
   // Paso template (tap) → avanzar a type
   if(tutActive && TUT_STEPS[tutStep]?.id==='template') advanceTut();
@@ -1930,6 +2084,8 @@ function pickTpl(key){
 //  SETTINGS DRAWER
 // ═══════════════════════════════════════════════════
 function openCfg(){
+  _fontSizeAtOpen  = cfg.fontSize;
+  _pendingFontSize = cfg.fontSize;
   document.getElementById('font-range').value=cfg.fontSize;
   document.getElementById('font-badge').textContent=cfg.fontSize+'px';
   renderCatList();
@@ -1957,13 +2113,51 @@ function openCfg(){
   });
 }
 function closeCfg(){
+  // Si el tamaño cambió y no estamos en tutorial, pedir confirmación
+  if(!tutActive && _pendingFontSize !== _fontSizeAtOpen){
+    document.getElementById('font-confirm-val').textContent = _pendingFontSize + 'px';
+    document.getElementById('font-confirm-modal').classList.add('open');
+    _doCloseCfg(); // cerrar el drawer mientras aparece la tarjeta
+    return;
+  }
+  _doCloseCfg();
+}
+
+function _doCloseCfg(){
   document.getElementById('cfg-drawer').classList.remove('open');
-  // Resetear scroll del drawer para la próxima apertura
   setTimeout(()=>{
     document.getElementById('cfg-overlay').classList.remove('open');
     const drawerBody = document.querySelector('#cfg-drawer .drawer-body');
     if(drawerBody) drawerBody.scrollTop = 0;
   }, 300);
+}
+
+function confirmFontChange(){
+  document.getElementById('font-confirm-modal').classList.remove('open');
+  _doCloseCfg();
+  // Aplicar durante el splash para ocultar el cambio brusco
+  cfg.fontSize = _pendingFontSize;
+  cfgSave();
+  const splash = document.getElementById('v-splash');
+  const bar    = document.getElementById('splash-bar');
+  splash.style.display = 'flex';
+  bar.style.transition = 'none';
+  bar.style.width = '0';
+  setTimeout(()=>{
+    setFs(cfg.fontSize);
+    bar.style.transition = 'width 0.9s cubic-bezier(.4,0,.2,1)';
+    bar.style.width = '100%';
+  }, 60);
+  setTimeout(()=>{ splash.style.display = 'none'; }, 1100);
+}
+
+function cancelFontChange(){
+  document.getElementById('font-confirm-modal').classList.remove('open');
+  // Revertir slider al valor original
+  _pendingFontSize = _fontSizeAtOpen;
+  document.getElementById('font-range').value = _fontSizeAtOpen;
+  document.getElementById('font-badge').textContent = _fontSizeAtOpen + 'px';
+  _doCloseCfg();
 }
 
 // ═══════════════════════════════════════════════════
@@ -1977,7 +2171,9 @@ function renderCatList(){
   if(!cats.length){ list.innerHTML=`<div style="font-size:var(--fs-xs);color:var(--muted)">Aún no hay categorías.</div>`; return; }
   cats.forEach(c=>{
     list.innerHTML+=`<div class="cat-row">
-      <div class="cat-dot" style="background:${c.color}"></div>
+      <div class="cat-dot">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="${c.color}" xmlns="http://www.w3.org/2000/svg"><path d="M21.41 11.58l-9-9A2 2 0 0 0 11 2H4a2 2 0 0 0-2 2v7c0 .53.21 1.04.59 1.41l9 9A2 2 0 0 0 13 22a2 2 0 0 0 1.41-.59l7-7A2 2 0 0 0 22 13a2 2 0 0 0-.59-1.42zM5.5 7A1.5 1.5 0 1 1 7 5.5 1.5 1.5 0 0 1 5.5 7z"/></svg>
+      </div>
       <div class="cat-name">${esc(c.name)}</div>
       <button class="cat-del" onclick="delCat('${c.id}')">✕</button>
     </div>`;
@@ -2093,7 +2289,7 @@ function assignCat(id){
   const cat=cats.find(c=>c.id===id);
   const chip=document.getElementById('cat-chip');
   if(cat){ chip.innerHTML=`<span class="dot" style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${cat.color};margin-right:4px"></span>${esc(cat.name)}`; }
-  else    { chip.textContent='🏷 Sin categoría'; }
+  else    { chip.textContent='Sin categoría'; }
   closeCatPick();
 }
 
@@ -2131,10 +2327,16 @@ function closeImpSheet(){
 function pickImp(val){
   eImportance=val;
   const chip=document.getElementById('imp-chip');
-  if(!val){ chip.textContent='⚡ Importancia'; chip.className='meta-chip'; }
+  if(!val){ chip.textContent='Importancia'; chip.className='meta-chip'; }
   else{
-    const labels={alta:'🔴 Alta',media:'🟡 Media',baja:'🔵 Baja'};
-    chip.textContent=labels[val]; chip.className='meta-chip imp-chip-'+val;
+    const icons={
+      alta:`<svg viewBox="0 0 24 24" width="10" height="10" fill="var(--danger)" style="margin-right:5px;vertical-align:-1px;flex-shrink:0"><path d="M14.4 6L14 4H5v17h2v-7h5.6l.4 2h7V6z"/></svg>`,
+      media:`<svg viewBox="0 0 24 24" width="10" height="10" fill="var(--accent)" style="margin-right:5px;vertical-align:-1px;flex-shrink:0"><path d="M17 3H7l-4 9c0 2.21 2.24 4 5 4s5-1.79 5-4l-4-9h8zm-9.17 8L9 6.6l1.17 4.4H7.83zM8 18h8v2H8v-2zm6-4c2.76 0 5-1.79 5-4l-4-9h-2l4 9H13c0 2.21 2.24 4 5 4z"/></svg>`,
+      baja:`<svg viewBox="0 0 24 24" width="10" height="10" fill="var(--blue)" style="margin-right:5px;vertical-align:-1px;flex-shrink:0"><path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg>`
+    };
+    const labels={alta:'Alta',media:'Media',baja:'Baja'};
+    chip.innerHTML=`${icons[val]}${labels[val]}`;
+    chip.className='meta-chip imp-chip-'+val;
   }
   closeImpSheet();
   if(tutActive && TUT_STEPS[tutStep]?.id==='importance') advanceTut();
@@ -2165,16 +2367,14 @@ function openEditor(data=null,idx=-1,tpl=null){
   document.getElementById('val-cols').textContent=eCols;
   document.getElementById('val-rows').textContent=eRows;
 
-  // Type chips & visibility — siempre visible durante tutorial
-  document.querySelectorAll('.type-chip').forEach(c=>{
-    c.classList.toggle('active',c.dataset.type===eType);
-  });
-  document.getElementById('ed-type-row').style.display = (tutActive || eType!=='info') ? 'flex' : 'none';
+  // Type chips — siempre visibles, pero bloqueados según plantilla elegida
+  document.getElementById('ed-type-row').style.display = 'flex';
+  applyTypeChipLock();
 
   // Meta chips
   assignCat(eCatId);
   pickImp(eImportance);
-  if(eImportance==null){ document.getElementById('imp-chip').textContent='⚡ Importancia'; document.getElementById('imp-chip').className='meta-chip'; }
+  if(eImportance==null){ document.getElementById('imp-chip').textContent='Importancia'; document.getElementById('imp-chip').className='meta-chip'; }
 
   // Math panel
   selCells.clear();
@@ -2183,16 +2383,38 @@ function openEditor(data=null,idx=-1,tpl=null){
   showView('v-editor');
 }
 
-function closeEditor(){ showView('v-feed'); }
+function closeEditor(){ showView('v-feed'); renderFeed(document.getElementById('search-bar').value.trim()); }
 
 // ═══════════════════════════════════════════════════
 //  TABLE TYPE
 // ═══════════════════════════════════════════════════
 function setType(t){
+  // Solo permitir cambio si el chip no está bloqueado
+  const chip=document.querySelector(`.type-chip[data-type="${t}"]`);
+  if(chip&&chip.classList.contains('locked'))return;
   eType=t;
   document.querySelectorAll('.type-chip').forEach(c=>c.classList.toggle('active',c.dataset.type===t));
-  document.getElementById('ed-type-row').style.display = t==='info' ? 'none' : 'flex';
   updateMathPanel();
+}
+
+// Aplica bloqueos en los type-chips según la plantilla seleccionada
+// finance→solo finance activo; numeric→solo numeric; contacts/info→solo info; custom→todos libres
+function applyTypeChipLock(){
+  // Mapa: qué plantilla permite qué tipos
+  const allowed={
+    finance:  ['finance'],
+    numeric:  ['numeric'],
+    contacts: ['info'],
+    custom:   ['info','numeric','finance'],
+    null:     ['info','numeric','finance']  // edición de tabla existente: todos libres
+  };
+  const key = activeTplKey || 'null';
+  const ok = allowed[key] || allowed['null'];
+  document.querySelectorAll('.type-chip').forEach(c=>{
+    const t=c.dataset.type;
+    c.classList.toggle('active', t===eType);
+    c.classList.toggle('locked', !ok.includes(t));
+  });
 }
 function updateMathPanel(){
   const mp=document.getElementById('math-panel');
@@ -2335,7 +2557,7 @@ function saveTable(){
     lastAccess:existing?.lastAccess||now
   };
   if(editIdx>=0){db[editIdx]=obj}else{db.unshift(obj)}
-  dbSave(); renderFeed();
+  dbSave(); renderFeed(document.getElementById('search-bar').value.trim());
   const wasTutSave = tutActive && TUT_STEPS[tutStep]?.id==='save';
   closeEditor();
   if(wasTutSave) setTimeout(advanceTut, 200);
@@ -2368,14 +2590,16 @@ function changeDim(dim,delta){
 // ═══════════════════════════════════════════════════
 function renderFeed(filter=''){
   const scroll=document.getElementById('feed-scroll');
-  scroll.querySelectorAll('.bubble,.special').forEach(b=>b.remove());
+  scroll.querySelectorAll('.bubble,.special,.note-card,.bubble-wrap').forEach(b=>b.remove());
   const empty=document.getElementById('empty-state');
 
   const filtered=filter
     ? db.filter(t=>{
         const cat=cats.find(c=>c.id===t.categoryId);
-        return t.name.toLowerCase().includes(filter.toLowerCase())
-          ||(cat&&cat.name.toLowerCase().includes(filter.toLowerCase()));
+        const nameMatch=( t.name||'').toLowerCase().includes(filter.toLowerCase());
+        const catMatch=(cat&&cat.name.toLowerCase().includes(filter.toLowerCase()));
+        const noteMatch=t.isNote&&(t.noteText||'').toLowerCase().includes(filter.toLowerCase());
+        return nameMatch||catMatch||noteMatch;
       })
     : db;
 
@@ -2384,40 +2608,101 @@ function renderFeed(filter=''){
   if(filtered.length===0&&!filter){empty.style.display='';return}
   empty.style.display='none';
 
-  // Special insight bubble (only when no filter and ≥1 table)
-  if(!filter&&db.length>0){
+  // Special insight bubble (only when no filter and ≥1 non-note table)
+  if(!filter&&db.some(t=>!t.isNote)){
     const sp=buildSpecialBubble();
     if(sp) scroll.insertBefore(sp,scroll.firstChild);
   }
 
-  filtered.forEach((t,i)=>{
-    const b=buildBubble(t,db.indexOf(t));
-    scroll.appendChild(b);
+  filtered.forEach((t)=>{
+    const idx=db.indexOf(t);
+    const el=t.isNote ? buildNoteCard(t,idx) : buildBubble(t,idx);
+    scroll.appendChild(el);
   });
 }
 
 function filterFeed(val){ renderFeed(val.trim()); }
 
+// ── Construye la tarjeta visual de una nota (estilo bloc) ──
+function buildNoteCard(t,idx){
+  const card=document.createElement('div');
+  card.className='note-card';
+  const dateStr=t.createdAt?new Date(t.createdAt).toLocaleDateString('es',{day:'2-digit',month:'short',year:'numeric'}):'';
+  card.innerHTML=`
+    <div class="note-card-head">
+      <div class="note-card-icon">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8L14 2zm0 2l4 4h-4V4zM8 13h8v1.5H8V13zm0 3h8v1.5H8V16zm0-6h3v1.5H8V10z"/>
+        </svg>
+      </div>
+      <div style="flex:1;min-width:0">
+        <div class="note-card-title">${esc(t.name||'Nota')}</div>
+        <div class="note-card-date">${dateStr}</div>
+      </div>
+      <button class="note-card-del" title="Eliminar" onclick="handleDelBtn(event,${idx})">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M18 7l-1-1H7L6 7H4v2h16V7h-2zM6 19a2 2 0 002 2h8a2 2 0 002-2V9H6v10z"/></svg>
+      </button>
+    </div>
+    <div class="note-card-body">${esc(t.noteText||'')}</div>
+    <div class="note-card-footer">
+      <span class="note-card-label">Nota</span>
+    </div>`;
+  // Click en la tarjeta abre un modal de edición de nota
+  card.addEventListener('click',(e)=>{
+    if(e.target.closest('.note-card-del'))return;
+    openNoteEdit(idx);
+  });
+  return card;
+}
+
+// ── Editor de nota existente ──
+function openNoteEdit(idx){
+  const t=db[idx];
+  if(!t||!t.isNote)return;
+  document.getElementById('note-area').value=t.noteText||'';
+  document.getElementById('note-preview').classList.remove('show');
+  const convertBtn=document.getElementById('btn-convert-note');
+  if(convertBtn)convertBtn.style.display='none';
+  // Reutilizar el modal guardando el índice a editar
+  document.getElementById('note-modal')._editIdx=idx;
+  document.getElementById('note-modal').classList.add('open');
+}
+
 function buildBubble(t,idx){
   const cat=cats.find(c=>c.id===t.categoryId);
-  const b=document.createElement('div');
-  b.className='bubble';
 
-  // Category band
+  // Wrapper externo: contiene etiqueta de categoría (encima) + burbuja
+  const wrap=document.createElement('div');
+  wrap.className='bubble-wrap';
+
   if(cat){
-    b.innerHTML+=`<div class="cat-band tall" style="background:${cat.color};color:${isLight(cat.color)?'rgba(0,0,0,.7)':'rgba(255,255,255,.85)'}">${esc(cat.name)}</div>`;
+    const txtColor=isLight(cat.color)?'rgba(0,0,0,.78)':'rgba(255,255,255,.92)';
+    const lbl=document.createElement('div');
+    lbl.className='cat-label';
+    lbl.style.cssText=`background:${cat.color};color:${txtColor}`;
+    lbl.textContent=cat.name;
+    wrap.appendChild(lbl);
   }
 
-  const impBadge=t.importance?`<span class="imp-badge imp-${t.importance}">${{alta:'🔴 Alta',media:'🟡 Media',baja:'🔵 Baja'}[t.importance]}</span>`:'';
-  const typeBadge=t.type!=='info'?`<span class="type-badge">${t.type==='finance'?'💰 Finanzas':'🔢 Cálculos'}</span>`:'';
+  const b=document.createElement('div');
+  b.className='bubble' + (cat ? ' has-cat' : '');
 
-  b.innerHTML+=`
+  const _impDot={
+    alta:`<svg viewBox="0 0 24 24" width="9" height="9" fill="var(--danger)" style="margin-right:4px;vertical-align:-1px;flex-shrink:0"><path d="M14.4 6L14 4H5v17h2v-7h5.6l.4 2h7V6z"/></svg>`,
+    media:`<svg viewBox="0 0 24 24" width="9" height="9" fill="var(--accent)" style="margin-right:4px;vertical-align:-1px;flex-shrink:0"><path d="M17 3H7l-4 9c0 2.21 2.24 4 5 4s5-1.79 5-4l-4-9h8zm-9.17 8L9 6.6l1.17 4.4H7.83zM8 18h8v2H8v-2zm6-4c2.76 0 5-1.79 5-4l-4-9h-2l4 9H13c0 2.21 2.24 4 5 4z"/></svg>`,
+    baja:`<svg viewBox="0 0 24 24" width="9" height="9" fill="var(--blue)" style="margin-right:4px;vertical-align:-1px;flex-shrink:0"><path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg>`
+  };
+  const _impLabel={alta:'Alta',media:'Media',baja:'Baja'};
+  const impBadge=t.importance?`<span class="imp-badge imp-${t.importance}">${_impDot[t.importance]}${_impLabel[t.importance]}</span>`:'';
+  const typeBadge=(t.type&&t.type!=='info'&&t.type!=='note')?`<span class="type-badge">${t.type==='finance'?'Finanzas':'Cálculos'}</span>`:'';
+  const gridSVG=`<svg viewBox="0 0 24 24" width="11" height="11" fill="currentColor" style="opacity:.4;vertical-align:-1px;margin-right:2px"><path d="M3 3h8v8H3V3zm0 10h8v8H3v-8zm10-10h8v8h-8V3zm0 10h8v8h-8v-8z"/></svg>`;
+
+  b.innerHTML=`
     <div class="bubble-head">
-      <div class="bubble-id">${String(idx+1).padStart(2,'0')}</div>
       <div class="bubble-info">
         <div class="bubble-name">${esc(t.name||'Sin título')}</div>
         <div class="bubble-meta">
-          <span>⊞ ${t.rows}×${t.cols}</span>${impBadge}${typeBadge}
+          <span>${gridSVG}${t.rows}&times;${t.cols}</span>${impBadge}${typeBadge}
         </div>
       </div>
       <button class="btn-del" title="Eliminar" data-idx="${idx}" onclick="handleDelBtn(event,${idx})">✕</button>
@@ -2425,17 +2710,17 @@ function buildBubble(t,idx){
     <div class="bubble-body">${buildReadTable(t)}</div>
     ${t.type==='finance'?buildFinSummary(t):''}`;
 
-  // Dentro de buildBubble, reemplazar el addEventListener actual por:
   b.addEventListener('click',(e)=>{
-    // Si el tutorial está activo y estamos en pasos de eliminación, no abrir editor
     if(tutActive && (TUT_STEPS[tutStep]?.id==='delete' || TUT_STEPS[tutStep]?.id==='delete-confirm')){
-      e.stopPropagation(); // Evita cualquier comportamiento accidental
+      e.stopPropagation();
       return;
     }
     trackAccess(idx);
     editTable(idx);
   });
-  return b;
+
+  wrap.appendChild(b);
+  return wrap;
 }
 
 function buildReadTable(t){
@@ -2443,7 +2728,7 @@ function buildReadTable(t){
   t.headers.forEach(hd=>{h+=`<th>${esc(hd||'—')}</th>`});
   h+=`</tr></thead><tbody>`;
   t.data.forEach((row,r)=>{
-    h+='<tr>';
+    h+=`<tr><td class="corner" style="background:var(--surface3);text-align:center;font-size:var(--fs-xs);color:var(--muted);user-select:none">${r+1}</td>`;
     row.forEach((cell,c)=>{
       const key=`${r},${c}`;const role=t.cellMeta?.[key]?.role;
       const cls=c===0?'label-col':role==='ingreso'?'ingreso-cell':role==='gasto'?'gasto-cell':'data-cell';
@@ -2499,76 +2784,210 @@ function fmtMoney(n){
 }
 
 // ═══════════════════════════════════════════════════
-//  SPECIAL (SMART) BUBBLE
+//  SPECIAL (SMART) BUBBLE  — "Análisis de actividad"
 // ═══════════════════════════════════════════════════
+
+// Algoritmo de puntuación para determinar la tabla más relevante
+function scoreTable(t){
+  const now=Date.now();
+  const msSinceAccess=now-(t.lastAccess||0);
+  const hoursAgo=msSinceAccess/3600000;
+  // Accesos totales (lectura)
+  let score=(t.accessCount||0)*1.0;
+  // Modificaciones pesan más (intención activa)
+  score+=(t.modifyCount||0)*2.5;
+  // Recencia: decaimiento exponencial — cuanto más reciente, más peso
+  // 0h=+10, 1h=+8, 6h=+5, 24h=+2, 72h=+0
+  if(hoursAgo<1)       score+=10;
+  else if(hoursAgo<6)  score+=7;
+  else if(hoursAgo<24) score+=4;
+  else if(hoursAgo<72) score+=1;
+  // Importancia declarada por el usuario
+  if(t.importance==='alta')  score+=6;
+  if(t.importance==='media') score+=3;
+  if(t.importance==='baja')  score+=1;
+  // Velocidad de acceso: si el último acceso fue muy rápido (prisa)
+  if(t._urgentAccess) score+=8;
+  return score;
+}
+
 function buildSpecialBubble(){
-  if(db.length===0)return null;
-  // Score tables by usage
-  const scored=db.map(t=>({t,score:(t.accessCount||0)+(t.modifyCount||0)*2+(Date.now()-(t.lastAccess||0)<86400000?5:0)}));
+  const tables=db.filter(t=>!t.isNote);
+  if(tables.length===0)return null;
+
+  // Selección por algoritmo
+  const scored=tables.map(t=>({t,score:scoreTable(t)}));
   scored.sort((a,b)=>b.score-a.score);
   const top=scored[0].t;
 
   let insights=[];
   let tip='';
+  let tipLevel='info'; // 'info'|'warn'|'alert'
 
   if(top.type==='finance'){
-    let ing=0,gas=0;
+    // ── ANÁLISIS FINANCIERO COMPLETO ──
+    let ing=0,gas=0,numIng=0,numGas=0;
     top.data.forEach((row,r)=>row.forEach((cell,c)=>{
       const v=parseFloat((cell||'').replace(/[,$\s]/g,''));
       if(isNaN(v))return;
       const role=top.cellMeta?.[`${r},${c}`]?.role;
-      if(role==='ingreso')ing+=v;if(role==='gasto')gas+=v;
+      if(role==='ingreso'){ing+=v;numIng++;}
+      if(role==='gasto'){gas+=v;numGas++;}
     }));
     const bal=ing-gas;
+    const ratio=ing>0?gas/ing:gas>0?99:0;
+    const pctGasto=Math.round(ratio*100);
     insights=[
       {lbl:'Ingresos',val:fmtMoney(ing),cls:'green'},
       {lbl:'Gastos',val:fmtMoney(gas),cls:'red'},
       {lbl:'Balance',val:fmtMoney(bal),cls:bal>=0?'green':'red'}
     ];
-    tip=finSuggestion(ing,gas);
-  } else {
-    const nonEmpty=top.data.flat().filter(c=>(c||'').trim()).length;
+    tip=finAnalysis(ing,gas,bal,ratio,numIng,numGas);
+    tipLevel=ratio>1?'alert':ratio>0.8?'warn':'info';
+
+  } else if(top.type==='numeric'){
+    // ── ANÁLISIS DE INVENTARIO / CÁLCULOS ──
+    const allVals=[];
+    top.data.forEach((row,r)=>row.forEach((cell,c)=>{
+      if(c===0)return; // ignorar columna label
+      const v=parseFloat((cell||'').replace(/[,$\s]/g,''));
+      if(!isNaN(v))allVals.push(v);
+    }));
+    const filled=top.data.flat().filter(c=>(c||'').trim()).length;
     const total=top.rows*top.cols;
-    const pct=total?Math.round(nonEmpty/total*100):0;
-    const rows=top.data.filter(r=>r.some(c=>(c||'').trim())).length;
+    const pct=total?Math.round(filled/total*100):0;
+    const suma=allVals.reduce((a,b)=>a+b,0);
+    const prom=allVals.length?suma/allVals.length:0;
     insights=[
       {lbl:'Completado',val:`${pct}%`,cls:'blue'},
-      {lbl:'Filas con datos',val:`${rows}`,cls:'neutral'},
-      {lbl:'Columnas',val:`${top.cols}`,cls:'neutral'}
+      {lbl:'Suma total',val:allVals.length?fmtNum(suma):'—',cls:'neutral'},
+      {lbl:'Promedio',val:allVals.length?fmtNum(prom):'—',cls:'neutral'}
     ];
-    tip='Tabla más utilizada. Tócala para editarla.';
+    tip=numericAnalysis(pct,suma,prom,allVals,top);
+    tipLevel=pct<30?'warn':'info';
+
+  } else {
+    // ── ANÁLISIS INFORMATIVO / CONTACTOS ──
+    const filledRows=top.data.filter(r=>r.some(c=>(c||'').trim())).length;
+    const emptyRows=top.rows-filledRows;
+    const filled=top.data.flat().filter(c=>(c||'').trim()).length;
+    const total=top.rows*top.cols;
+    const pct=total?Math.round(filled/total*100):0;
+    insights=[
+      {lbl:'Completado',val:`${pct}%`,cls:pct>80?'green':pct>40?'blue':'red'},
+      {lbl:'Filas activas',val:`${filledRows}`,cls:'neutral'},
+      {lbl:'Filas vacías',val:`${emptyRows}`,cls:emptyRows>top.rows*0.5?'red':'neutral'}
+    ];
+    tip=infoAnalysis(pct,filledRows,emptyRows,top);
+    tipLevel=pct<20?'warn':'info';
   }
+
+  const tipColors={
+    info:'var(--muted)',
+    warn:'var(--accent)',
+    alert:'var(--danger)'
+  };
+  const tipIcons={
+    info:`<svg viewBox="0 0 24 24" width="13" height="13" fill="${tipColors.info}"><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>`,
+    warn:`<svg viewBox="0 0 24 24" width="13" height="13" fill="${tipColors.warn}"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>`,
+    alert:`<svg viewBox="0 0 24 24" width="13" height="13" fill="${tipColors.alert}"><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>`
+  };
 
   const div=document.createElement('div');
   div.className='bubble special';
   div.innerHTML=`
     <div class="special-head">
-      <span class="special-badge">⚡ Datos importantes</span>
+      <span class="special-badge">
+        <svg viewBox="0 0 24 24" width="11" height="11" fill="currentColor" style="margin-right:4px;vertical-align:-1px"><path d="M13 2.05V4.08C16.39 4.54 19 7.43 19 11c0 3.21-1.88 6.03-5 7.43V21h-4v-2.57C6.88 17.03 5 14.21 5 11c0-3.57 2.61-6.46 6-6.92V2.05h2zM12 6a5 5 0 1 0 0 10A5 5 0 0 0 12 6z"/></svg>
+        Análisis de actividad
+      </span>
       <div class="special-title">${esc(top.name||'Sin título')}</div>
     </div>
     <div class="special-insights">${insights.map(i=>`<div class="insight-item"><div class="insight-lbl">${esc(i.lbl)}</div><div class="insight-val ${i.cls}">${esc(i.val)}</div></div>`).join('')}</div>
-    ${tip?`<div class="special-tip">💡 ${esc(tip)}</div>`:''}`;
+    ${tip?`<div class="special-tip" style="color:${tipColors[tipLevel]}">${tipIcons[tipLevel]}&nbsp;${esc(tip)}</div>`:''}`;
   const tidx=db.indexOf(top);
   div.addEventListener('click',()=>{ trackAccess(tidx);editTable(tidx); });
   return div;
 }
 
-function finSuggestion(ing,gas){
-  if(ing===0&&gas===0)return'Marca celdas como Ingreso o Gasto para ver el análisis financiero.';
-  const ratio=ing>0?gas/ing:1;
-  if(ratio>1)return'Tus gastos superan tus ingresos. Revisa los 3 gastos más grandes para encontrar oportunidades de ahorro.';
-  if(ratio>0.8)return'Gastas más del 80% de tus ingresos. La regla 50/30/20 sugiere: 50% necesidades, 30% deseos, 20% ahorro.';
-  if(ratio>0.5)return'Gestión aceptable. Intenta incrementar el ahorro al 20% de tus ingresos para mayor seguridad financiera.';
-  return'Excelente gestión. Con tu nivel de ahorro, considera invertir el excedente para generar rendimientos adicionales.';
+// ── Formateador numérico compacto ──
+function fmtNum(n){
+  if(n===0)return'0';
+  const abs=Math.abs(n);
+  if(abs>=1000000) return `${(n/1000000).toFixed(1)}M`;
+  if(abs>=1000)    return `${(n/1000).toFixed(1)}k`;
+  return parseFloat(n.toFixed(2)).toString();
+}
+
+// ── Análisis financiero con reglas contables reales ──
+function finAnalysis(ing,gas,bal,ratio,numIng,numGas){
+  if(numIng===0&&numGas===0)
+    return 'Marque las celdas numéricas como Ingreso o Gasto para activar el análisis financiero.';
+  if(ing===0&&gas>0)
+    return `Solo se registran egresos (${fmtMoney(gas)}). Agregue ingresos para calcular su situación real.`;
+  if(ratio===0)
+    return `Ingresos registrados: ${fmtMoney(ing)}. Aún no hay gastos marcados. Registre sus egresos para ver el balance.`;
+  const pct=Math.round(ratio*100);
+  if(ratio>1.5)
+    return `Situación crítica: los gastos superan los ingresos en ${fmtMoney(gas-ing)} (${pct}%). Reduzca egresos de inmediato para evitar déficit acumulado.`;
+  if(ratio>1)
+    return `Los gastos superan los ingresos por ${fmtMoney(gas-ing)}. Identifique los 3 rubros de mayor egreso y evalúe recortes.`;
+  if(ratio>0.9)
+    return `Gasta el ${pct}% de sus ingresos. Margen de ahorro mínimo (${fmtMoney(bal)}). La norma contable recomienda reservar al menos un 10%.`;
+  if(ratio>0.7)
+    return `Gasta el ${pct}% de sus ingresos. Margen aceptable. Aplique la regla 50/30/20: necesidades 50%, discrecional 30%, ahorro 20%.`;
+  if(ratio>0.5)
+    return `Ahorro del ${100-pct}% (${fmtMoney(bal)}). Buena gestión. Considere destinar el excedente a un fondo de emergencia equivalente a 3–6 meses de gastos.`;
+  return `Excelente control: solo gasta el ${pct}% de sus ingresos. Superávit de ${fmtMoney(bal)}. Evalúe instrumentos de inversión para generar rendimientos adicionales.`;
+}
+
+// ── Análisis numérico/inventario ──
+function numericAnalysis(pct,suma,prom,vals,t){
+  if(vals.length===0)
+    return 'Ingrese valores numéricos en la tabla para activar el análisis de datos.';
+  const max=Math.max(...vals);const min=Math.min(...vals);
+  const rango=max-min;
+  if(pct<25)
+    return `La tabla está solo al ${pct}% de capacidad. Complete los datos faltantes para obtener un análisis más preciso.`;
+  if(pct<60)
+    return `Datos al ${pct}%. Suma acumulada: ${fmtNum(suma)}. Promedio: ${fmtNum(prom)}. Rango de valores: ${fmtNum(min)}–${fmtNum(max)}.`;
+  return `Tabla completa al ${pct}%. Total: ${fmtNum(suma)} | Promedio: ${fmtNum(prom)} | Rango: ${fmtNum(min)}–${fmtNum(max)}. Los datos están listos para revisión.`;
+}
+
+// ── Análisis informativo/contactos ──
+function infoAnalysis(pct,filledRows,emptyRows,t){
+  if(filledRows===0)
+    return 'No hay datos ingresados aún. Toque esta tarjeta para comenzar a completar la tabla.';
+  if(pct<20)
+    return `Solo el ${pct}% de la tabla tiene datos. Hay ${emptyRows} filas sin completar. Se recomienda revisar si todos los campos son necesarios.`;
+  if(emptyRows>filledRows)
+    return `${filledRows} filas con datos, ${emptyRows} vacías. Si las filas vacías no se usarán, puede reducir el tamaño de la tabla desde el editor.`;
+  if(pct===100)
+    return 'Tabla completa. Todos los campos tienen información registrada.';
+  return `Tabla al ${pct}% de uso activo. ${filledRows} registros ingresados. Toque para actualizar o ampliar los datos.`;
 }
 
 // ═══════════════════════════════════════════════════
-//  ACCESS TRACKING
+//  ACCESS TRACKING + DETECCIÓN DE URGENCIA
 // ═══════════════════════════════════════════════════
+// Umbral: si el usuario abre la tabla en menos de 2s desde la última vez → acceso con prisa
+const URGENT_MS = 2000;
+
 function trackAccess(idx){
   if(idx<0||idx>=db.length)return;
-  db[idx].accessCount=(db[idx].accessCount||0)+1;
-  db[idx].lastAccess=Date.now();
+  const t=db[idx];
+  const now=Date.now();
+  const gap=now-(t.lastAccess||0);
+  // Si el gap es muy corto → marca acceso urgente
+  if(gap>0&&gap<URGENT_MS){
+    t._urgentAccess=true;
+    t._urgentCount=(t._urgentCount||0)+1;
+  } else {
+    // Decaer la urgencia con el tiempo
+    if(gap>3600000) t._urgentAccess=false;
+  }
+  t.accessCount=(t.accessCount||0)+1;
+  t.lastAccess=now;
   dbSave();
 }
 
@@ -2581,6 +3000,7 @@ function editTable(i){
     const feedSteps = new Set(['intro','fab','template-info','template','bubble','search','category','delete','delete-confirm','done']);
     if(feedSteps.has(id)) return;
   }
+  activeTplKey=null; // al editar una tabla ya existente, no hay restricción de tipo
   trackAccess(i);
   openEditor(db[i],i);
 }
@@ -2646,15 +3066,25 @@ function openQuickNote(){
   document.getElementById('note-area').value='';
   document.getElementById('note-preview').innerHTML='';
   document.getElementById('note-preview').classList.remove('show');
+  const convertBtn=document.getElementById('btn-convert-note');
+  if(convertBtn)convertBtn.style.display='none';
+  document.getElementById('note-modal')._editIdx=null;
   document.getElementById('note-modal').classList.add('open');
 }
-function closeNote(){document.getElementById('note-modal').classList.remove('open')}
 
 function previewNote(){
   const text=document.getElementById('note-area').value;
-  const parsed=parseNote(text);
   const prev=document.getElementById('note-preview');
-  if(!parsed||!text.trim()){prev.classList.remove('show');return}
+  const convertBtn=document.getElementById('btn-convert-note');
+  // Solo mostrar preview y botón convertir si el texto usa "|"
+  const hasPipe=/\|/.test(text);
+  if(!hasPipe||!text.trim()){
+    prev.classList.remove('show');
+    if(convertBtn) convertBtn.style.display='none';
+    return;
+  }
+  const parsed=parseNote(text);
+  if(!parsed){prev.classList.remove('show');if(convertBtn)convertBtn.style.display='none';return;}
   let h=`<table class="rtable" style="margin:0"><thead><tr><th class="corner">#</th>`;
   parsed.headers.forEach(hd=>{h+=`<th>${esc(hd||'—')}</th>`});
   h+=`</tr></thead><tbody>`;
@@ -2665,19 +3095,15 @@ function previewNote(){
   });
   h+=`</tbody></table>`;
   prev.innerHTML=h;prev.classList.add('show');
+  if(convertBtn) convertBtn.style.display='';
 }
 
 function parseNote(text){
   const lines=text.trim().split('\n').map(l=>l.trim()).filter(Boolean);
   if(!lines.length)return null;
-  // Detect separator
-  let sep=null;
-  const first=lines[0];
-  if(/\|/.test(first))sep='|';
-  else if(/\t/.test(first))sep='\t';
-  else if((first.match(/,/g)||[]).length>1)sep=',';
-  else if(/\s-\s/.test(first))sep=' - ';
-  if(sep){
+  // Solo detectar separador | (el principal para tablas)
+  if(/\|/.test(lines[0])){
+    const sep='|';
     const headers=lines[0].split(sep).map(h=>h.trim());
     const data=lines.slice(1).map(line=>{
       const cells=line.split(sep).map(c=>c.trim());
@@ -2686,26 +3112,41 @@ function parseNote(text){
     });
     return{headers,data,rows:data.length,cols:headers.length};
   }
-  // Single-column list
-  const isHeader=lines[0]===lines[0].toUpperCase()||lines[0].endsWith(':');
-  const headers=[isHeader?lines[0].replace(/:$/,''):'Elemento','Detalle'];
-  const data=(isHeader?lines.slice(1):lines).map(l=>[l,'']);
-  return{headers,data,rows:data.length,cols:2};
+  return null;
 }
 
 function saveNoteOnly(){
   const text=document.getElementById('note-area').value.trim();
   if(!text)return;
-  const parsed=parseNote(text);
+  const modal=document.getElementById('note-modal');
+  const editIdx=modal._editIdx;
   const now=Date.now();
-  const obj={
-    id:'n'+now, name:'📝 Nota rápida', rows:parsed?.rows||1, cols:parsed?.cols||1,
-    headers:parsed?.headers||['Nota'], data:parsed?.data||[[text]],
-    type:'info', categoryId:null, importance:null, cellMeta:{},
-    createdAt:now, updatedAt:now, accessCount:0, modifyCount:1, lastAccess:now
-  };
-  db.unshift(obj);dbSave();renderFeed();
+  if(editIdx!=null&&editIdx>=0&&db[editIdx]?.isNote){
+    // Editar nota existente
+    db[editIdx].noteText=text;
+    db[editIdx].updatedAt=now;
+    db[editIdx].modifyCount=(db[editIdx].modifyCount||0)+1;
+    modal._editIdx=null;
+  } else {
+    // Nueva nota
+    const obj={
+      id:'n'+now,
+      isNote:true,
+      name:'Nota',
+      noteText:text,
+      type:'note',
+      categoryId:null,importance:null,
+      createdAt:now,updatedAt:now,accessCount:0,modifyCount:1,lastAccess:now
+    };
+    db.unshift(obj);
+  }
+  dbSave();renderFeed();
   closeNote();
+}
+
+function closeNote(){
+  document.getElementById('note-modal')._editIdx=null;
+  document.getElementById('note-modal').classList.remove('open');
 }
 
 function convertNote(){
@@ -2714,10 +3155,9 @@ function convertNote(){
   const parsed=parseNote(text);
   if(!parsed)return;
   closeNote();
-  const tpl={type:'info',headers:parsed.headers,rows:parsed.rows,cols:parsed.cols};
   const now=Date.now();
   const obj={
-    id:'t'+now,name:'Nota rápida',rows:parsed.rows,cols:parsed.cols,
+    id:'t'+now,name:'Nueva tabla',rows:parsed.rows,cols:parsed.cols,
     headers:parsed.headers,data:parsed.data,type:'info',
     categoryId:null,importance:null,cellMeta:{},
     createdAt:now,updatedAt:now,accessCount:0,modifyCount:1,lastAccess:now
