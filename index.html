@@ -3567,7 +3567,7 @@ async function exportTable(e, idx, format){
   ['#', ...t.headers].forEach((h,i)=>{
     const th = document.createElement('th');
     th.textContent = h ? h.toUpperCase() : '—';
-    th.style.cssText = `border:1px solid #1E3050;padding:6px 10px;background:#0D1A2E;color:${i===0?'#8BAAC8':'#E8B84B'};text-align:left;font-size:12px`;
+    th.style.cssText = `border:1px solid #1E3050;padding:6px 10px;background:#0D1A2E;color:${i===0?'#8BAAC8': i===1?'#4B8FE8':'#E8B84B'};text-align:left;font-size:12px`;
     hrow.appendChild(th);
   });
   thead.appendChild(hrow); tableEl.appendChild(thead);
