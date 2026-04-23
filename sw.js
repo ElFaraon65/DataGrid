@@ -4,7 +4,7 @@
    Toda la app funciona sin conexión una vez instalada.
 ═══════════════════════════════════════════════════════ */
 
-const CACHE_NAME  = 'datagrid-v5';
+const CACHE_NAME  = 'datagrid-v6';
 const STATIC_ASSETS = [
   'index.html',
   'manifest.json',
