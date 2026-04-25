@@ -1045,6 +1045,12 @@ input[type=range].font-range::-webkit-slider-thumb{-webkit-appearance:none;width
     /* Sin padding excesivo en móvil */
     padding:14px 14px 12px !important;
   }
+  /* Paso template-info: la tarjeta cubre el modal, el JS controla top/height */
+  #tut-card.tpl-info-mode{
+    max-height:none !important;
+    height:var(--tut-card-h, auto) !important;
+    overflow-y:auto !important;
+  }
   .tut-title{font-size:var(--fs-lg) !important;margin-bottom:6px}
   .tut-msg{font-size:var(--fs-sm) !important;margin-bottom:10px;line-height:1.55}
   .tut-step{font-size:calc(var(--fs)*.65) !important;margin-bottom:4px}
@@ -1058,6 +1064,13 @@ input[type=range].font-range::-webkit-slider-thumb{-webkit-appearance:none;width
     width:min(60vw,400px);
     max-height:70dvh;
     padding:22px 24px;
+  }
+  /* Paso template-info: la tarjeta cubre el modal, el JS controla dimensiones */
+  #tut-card.tpl-info-mode{
+    max-height:none !important;
+    height:var(--tut-card-h, auto) !important;
+    width:var(--tut-card-w, min(60vw,400px)) !important;
+    overflow-y:auto !important;
   }
   .tut-title{font-size:var(--fs-xl)}
   .tut-msg{font-size:var(--fs-md)}
@@ -1844,9 +1857,24 @@ function renderTutStep(){
     if(s.customAction) s.customAction();
   }
 
-  spotlightTut(s.target);
   lockFeedUI();
   const card = document.getElementById('tut-card');
+
+  // PASO export-btn: el spotlight hace scroll antes de dibujar (120ms delay).
+  // Diferimos también positionCard y show de la tarjeta para que ocurran
+  // DESPUÉS del scroll, evitando que la tarjeta tape el spotlight.
+  if (s.id === 'export-btn') {
+    card.classList.remove('show');
+    spotlightTut(s.target); // lanza scroll + retry interno en 120ms
+    setTimeout(() => {
+      positionCard(s.target);
+      card.classList.add('show');
+      card.scrollTop = 0;
+    }, 140); // 20ms más que el retry para que el spotlight ya esté dibujado
+    return;
+  }
+
+  spotlightTut(s.target);
   
   // PASOS SIN TARJETA VISIBLE: 'template' (el usuario debe ver el modal sin obstáculos)
   const hideCardSteps = ['template', 'grid', 'importance'];
@@ -1927,8 +1955,8 @@ function spotlightTut(sel){
 
   // Si el botón export está dentro de un scroll container, asegurarse que esté visible
   if(sel==='.btn-export'){
-    // 🔧 FIX: limpiar el spotlight del paso anterior ANTES del retry,
-    // para que no quede «pegado» en la posición de la ventana categoría.
+    // Limpiar spotlight previo, hacer scroll y luego dibujar con selector alternativo
+    // para evitar el bucle infinito (el retry también entraría aquí si usamos el mismo sel)
     pieces.forEach(id=>{
       const e=document.getElementById(id);
       e.classList.remove('show');
@@ -1936,8 +1964,27 @@ function spotlightTut(sel){
     });
     shine.classList.remove('show');
     el.scrollIntoView({block:'nearest',inline:'nearest'});
-    // setTimeout > rAF: da tiempo a que el scroll termine de pintar
-    setTimeout(()=>spotlightTut(sel), 100);
+    // Usamos '__btn-export-retry' para que el retry NO vuelva a entrar en este bloque
+    setTimeout(()=>spotlightTut('__btn-export-retry'), 120);
+    return;
+  }
+  // Retry interno del paso export-btn: misma lógica pero sin scroll ni bucle
+  if(sel==='__btn-export-retry'){
+    const retryEl = document.querySelector('.btn-export');
+    if(!retryEl){ return; }
+    const r2=retryEl.getBoundingClientRect();
+    if(r2.width===0||r2.height===0){ setTimeout(()=>spotlightTut('__btn-export-retry'),50); return; }
+    const pad2=5,vw2=window.innerWidth,vh2=window.innerHeight;
+    const T2=Math.max(0,r2.top-pad2),B2=Math.min(vh2,r2.bottom+pad2);
+    const L2=Math.max(0,r2.left-pad2),R2=Math.min(vw2,r2.right+pad2);
+    const set2=(id,css)=>{ const e=document.getElementById(id);e.classList.add('show');e.style.cssText=css; };
+    set2('tut-top',    `top:0;left:0;right:0;height:${T2}px`);
+    set2('tut-bottom', `top:${B2}px;left:0;right:0;bottom:0`);
+    set2('tut-left',   `top:${T2}px;left:0;width:${L2}px;height:${B2-T2}px`);
+    set2('tut-right',  `top:${T2}px;left:${R2}px;right:0;height:${B2-T2}px`);
+    shine.classList.add('show');
+    const elRadius2=parseFloat(getComputedStyle(retryEl).borderRadius)||8;
+    shine.style.cssText=`top:${T2}px;left:${L2}px;width:${R2-L2}px;height:${B2-T2}px;border-radius:${Math.min(elRadius2+pad2,20)}px`;
     return;
   }
 
@@ -1982,9 +2029,10 @@ function positionCard(sel){
       '#fab-btn'   // FAB está abajo-derecha → tarjeta arriba
     ]);
     if(!sel || zoneA.has(sel)){
-      // EXCEPCIÓN: paso 'category' forzar tarjeta abajo
-      if (tutActive && TUT_STEPS[tutStep]?.id === 'category') {
-        card.style.cssText = `left:${safePad}px;right:${safePad}px;bottom:${safeBot}px;top:auto;position:fixed;max-height:38dvh;`;
+      // EXCEPCIÓN: paso 'category' — el botón +Nueva categoría está en la mitad del drawer.
+      // Tarjeta abajo con altura reducida para que el botón quede visible encima.
+      if (tutActive && (TUT_STEPS[tutStep]?.id === 'category')) {
+        card.style.cssText = `left:${safePad}px;right:${safePad}px;bottom:${safeBot}px;top:auto;position:fixed;max-height:28dvh;overflow-y:auto;`;
       } else if (tutActive && TUT_STEPS[tutStep]?.id === 'intro') {
         card.style.cssText = `left:${safePad}px;right:${safePad}px;top:230px;bottom:auto;position:fixed;max-height:38dvh;`;
       } else {
@@ -1997,14 +2045,17 @@ function positionCard(sel){
     // → tarjeta en la PARTE INFERIOR (modal está en el centro, espacio libre abajo)
     if(sel.includes('modal')){
       if (tutActive && TUT_STEPS[tutStep]?.id === 'template-info') {
-        // 🔧 FIX: la tarjeta se pone ENCIMA del modal de plantillas (como guardaespaldas).
-        // En móvil, left/right están forzados por CSS (!important), sólo podemos mover top/height.
+        // Tarjeta cubre el modal de plantillas completamente (actúa de guardaespaldas)
         const modalBox = document.querySelector('#tpl-modal .modal-box');
         if(modalBox){
           const mr = modalBox.getBoundingClientRect();
-          card.style.cssText = `top:${Math.max(safePad, mr.top)}px;bottom:auto;position:fixed;height:${mr.height}px;overflow-y:auto;`;
+          card.style.cssText = `left:${Math.max(safePad, mr.left)}px;right:${Math.max(safePad, vw - mr.right)}px;top:${Math.max(safePad, mr.top)}px;bottom:auto;position:fixed;overflow-y:auto;`;
+          card.style.setProperty('height', mr.height + 'px', 'important');
+          card.style.setProperty('max-height', 'none', 'important');
         } else {
-          card.style.cssText = `left:${safePad}px;right:${safePad}px;top:60px;bottom:auto;position:fixed;min-height:70dvh;overflow-y:auto;`;
+          card.style.cssText = `left:${safePad}px;right:${safePad}px;top:60px;bottom:auto;position:fixed;overflow-y:auto;`;
+          card.style.setProperty('height', '70dvh', 'important');
+          card.style.setProperty('max-height', 'none', 'important');
         }
       } else if (tutActive && TUT_STEPS[tutStep]?.id === 'delete-confirm') {
         // Pegado al techo
@@ -2029,6 +2080,12 @@ function positionCard(sel){
 
     // ZONA D — Elementos en la mitad superior de pantalla (editor: inputs, chips, rows, table)
     // → tarjeta en la PARTE INFERIOR
+    // EXCEPCIÓN: paso 'category' — el engranaje está arriba pero el drawer lo cubre todo;
+    // la tarjeta va ABAJO para no tapar el botón de acción dentro del drawer.
+    if (tutActive && TUT_STEPS[tutStep]?.id === 'category') {
+      card.style.cssText = `left:${safePad}px;right:${safePad}px;bottom:${safeBot}px;top:auto;position:fixed;max-height:38dvh;`;
+      return;
+    }
     const el2 = document.querySelector(sel);
     if(el2){
       const r2 = el2.getBoundingClientRect();
@@ -2061,13 +2118,20 @@ function positionCard(sel){
      luego abajo/arriba. Nunca sale de pantalla.
      ──────────────────────────────────────────────────────── */
 
-  // 🔧 FIX: En el paso template-info la tarjeta cubre el modal de plantillas (desktop)
+  // En el paso template-info la tarjeta cubre el modal de plantillas (desktop)
   if(tutActive && TUT_STEPS[tutStep]?.id === 'template-info'){
     const modalBox = document.querySelector('#tpl-modal .modal-box');
     if(modalBox){
       const mr = modalBox.getBoundingClientRect();
       const extra=20;
-      card.style.cssText = `left:${mr.left-extra}px;top:${mr.top-extra}px;width:${mr.width+extra*2}px;height:${mr.height+extra*2}px;position:fixed;overflow-y:auto;z-index:980;`;
+      const w = mr.width + extra*2;
+      const h = mr.height + extra*2;
+      // Aplicar dimensiones exactas del modal usando setProperty para poder usar !important
+      // y vencer los max-height/width del media query
+      card.style.cssText = `left:${mr.left-extra}px;top:${mr.top-extra}px;position:fixed;overflow-y:auto;z-index:980;`;
+      card.style.setProperty('width',  w + 'px', 'important');
+      card.style.setProperty('height', h + 'px', 'important');
+      card.style.setProperty('max-height', 'none', 'important');
       return;
     }
   }
@@ -2249,7 +2313,8 @@ let activeTplKey=null; // plantilla activa para controlar qué tipos están disp
 function pickTpl(key){
   const tpl=TEMPLATES[key];
   activeTplKey=key;
-  closeTpl();
+  // Cerrar el modal siempre, incluso durante el tutorial
+  document.getElementById('tpl-modal').classList.remove('open');
   // Paso template (tap) → avanzar a type
   if(tutActive && TUT_STEPS[tutStep]?.id==='template') advanceTut();
   openEditor(null,-1,tpl);
@@ -2362,7 +2427,7 @@ function openCatCreate(){
   buildPalette();
     // En móvil (<640px), cerrar el drawer de Configuración para evitar solapamiento
   if (window.innerWidth < 640) {
-    closeCfg();
+    _doCloseCfg();
   }
   document.getElementById('cat-modal').classList.add('open');
   // Tutorial paso 'category' fase 1→2: modal abierto, pedir nombre
@@ -2416,8 +2481,8 @@ function saveCat(){
       if(cancelBtn) { cancelBtn.style.pointerEvents = ''; cancelBtn.style.opacity = ''; }
       modal.removeAttribute('data-tut-locked');
     }
-    // Forzar cierre del drawer y del modal (closeCatModal está bloqueada por el tutorial)
-    closeCfg();
+    // Forzar cierre del drawer y del modal (closeCfg/closeCatModal están bloqueadas por el tutorial)
+    _doCloseCfg();
     // Cerrar modal manualmente ignorando restricción
     document.getElementById('cat-modal').classList.remove('open');
     // Ocultar tarjeta del tutorial momentáneamente para evitar bloqueos
@@ -3474,10 +3539,6 @@ let _openExportIdx = null;
 
 function openExportMenu(e, idx){
   e.stopPropagation();
-  // Si el tutorial está en el paso 'export-btn', avanzar al siguiente paso
-  if(tutActive && TUT_STEPS[tutStep]?.id==='export-btn'){
-    advanceTut();
-  }
   const menu = document.getElementById('export-float-menu');
   if(!menu) return;
 
@@ -3511,6 +3572,12 @@ function openExportMenu(e, idx){
   // Mostrar
   menu.classList.add('open');
   _openExportIdx = idx;
+
+  // Si el tutorial está en el paso 'export-btn', avanzar DESPUÉS de que el menú esté visible
+  // para que spotlightTut pueda encontrar #export-float-menu con dimensiones reales
+  if(tutActive && TUT_STEPS[tutStep]?.id==='export-btn'){
+    advanceTut();
+  }
 }
 
 function exportFromMenu(e, format){
