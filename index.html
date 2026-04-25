@@ -1946,29 +1946,9 @@ function spotlightTut(sel){
       if(cr.width>0&&cr.height>0&&cr.top>=0&&cr.bottom<=vh){ el=c; break; }
     }
   }
-  if(!el) el=document.querySelector(sel);
-  if(!el){
-    pieces.forEach(id=>document.getElementById(id).classList.remove('show'));
-    shine.classList.remove('show');
-    return;
-  }
-
-  // Si el botón export está dentro de un scroll container, asegurarse que esté visible
-  if(sel==='.btn-export'){
-    // Limpiar spotlight previo, hacer scroll y luego dibujar con selector alternativo
-    // para evitar el bucle infinito (el retry también entraría aquí si usamos el mismo sel)
-    pieces.forEach(id=>{
-      const e=document.getElementById(id);
-      e.classList.remove('show');
-      e.style.cssText='';
-    });
-    shine.classList.remove('show');
-    el.scrollIntoView({block:'nearest',inline:'nearest'});
-    // Usamos '__btn-export-retry' para que el retry NO vuelva a entrar en este bloque
-    setTimeout(()=>spotlightTut('__btn-export-retry'), 120);
-    return;
-  }
-  // Retry interno del paso export-btn: misma lógica pero sin scroll ni bucle
+  // Retry interno del paso export-btn: debe ir ANTES del chequeo if(!el)
+  // porque '__btn-export-retry' no es un selector CSS válido y querySelector devuelve null,
+  // lo que causaba que la función retornara temprano sin dibujar el spotlight.
   if(sel==='__btn-export-retry'){
     const retryEl = document.querySelector('.btn-export');
     if(!retryEl){ return; }
@@ -1985,6 +1965,27 @@ function spotlightTut(sel){
     shine.classList.add('show');
     const elRadius2=parseFloat(getComputedStyle(retryEl).borderRadius)||8;
     shine.style.cssText=`top:${T2}px;left:${L2}px;width:${R2-L2}px;height:${B2-T2}px;border-radius:${Math.min(elRadius2+pad2,20)}px`;
+    return;
+  }
+
+  if(!el) el=document.querySelector(sel);
+  if(!el){
+    pieces.forEach(id=>document.getElementById(id).classList.remove('show'));
+    shine.classList.remove('show');
+    return;
+  }
+
+  // Si el botón export está dentro de un scroll container, asegurarse que esté visible
+  if(sel==='.btn-export'){
+    pieces.forEach(id=>{
+      const e=document.getElementById(id);
+      e.classList.remove('show');
+      e.style.cssText='';
+    });
+    shine.classList.remove('show');
+    shine.style.cssText='';
+    el.scrollIntoView({block:'nearest',inline:'nearest'});
+    setTimeout(()=>spotlightTut('__btn-export-retry'), 120);
     return;
   }
 
