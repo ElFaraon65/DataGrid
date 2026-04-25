@@ -170,8 +170,8 @@ body{
 }
 .btn-save:active{opacity:.78;transform:scale(.95)}
 .btn-save:disabled{
-  background:rgba(75,143,232,0.35) !important;
-  color:rgba(75,143,232,0.6) !important;
+  background:#3a3a3a !important;
+  color:#666 !important;
   cursor:not-allowed !important;
   opacity:1 !important;
   transform:none !important;
@@ -3793,18 +3793,8 @@ async function exportTable(e, idx, format){
   // Esperar fonts
   await document.fonts.ready;
 
-  // Usar html2canvas si está disponible, sino Canvas API básica
+  // Usar html2canvas (cargado localmente desde assets/libs/)
   try {
-    // Cargamos html2canvas dinámicamente
-    if(!window.html2canvas){
-      await new Promise((res,rej)=>{
-        const s=document.createElement('script');
-        s.src='https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
-        s.onload=res; s.onerror=rej;
-        document.head.appendChild(s);
-      });
-    }
-
     const canvas = await html2canvas(container, {
       backgroundColor:'#07101F',
       scale: 2,
@@ -3817,15 +3807,7 @@ async function exportTable(e, idx, format){
     if(format === 'png'){
       _downloadCanvas(canvas, safeName + '.png', 'image/png');
     } else {
-      // PDF via jsPDF
-      if(!window.jspdf){
-        await new Promise((res,rej)=>{
-          const s=document.createElement('script');
-          s.src='https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
-          s.onload=res; s.onerror=rej;
-          document.head.appendChild(s);
-        });
-      }
+      // PDF via jsPDF (cargado localmente desde assets/libs/)
       const { jsPDF } = window.jspdf;
       const imgData = canvas.toDataURL('image/png');
       const pxToMm = px => px * 0.2645833333;
@@ -3872,6 +3854,15 @@ function _downloadPDF(pdf, filename){
 }
 
 </script>
+<!-- ════  LIBRERÍAS OFFLINE (html2canvas + jsPDF) ════
+     Descarga los archivos .min.js y colócalos en assets/libs/
+     para que la exportación funcione 100% sin conexión a internet.
+     html2canvas v1.4.1: https://github.com/niklasvh/html2canvas/releases
+     jsPDF v2.5.1:       https://github.com/parallax/jsPDF/releases
+════ -->
+<script src="assets/libs/html2canvas.min.js"></script>
+<script src="assets/libs/jspdf.umd.min.js"></script>
+
 <!-- Menú flotante de exportación (global, fuera de overflow:hidden) -->
 <div id="export-float-menu">
   <button class="export-opt" id="export-opt-pdf" onclick="exportFromMenu(event,'pdf')">
