@@ -169,6 +169,15 @@ body{
   cursor:pointer;flex-shrink:0;white-space:nowrap;transition:opacity .15s,transform .1s;
 }
 .btn-save:active{opacity:.78;transform:scale(.95)}
+.btn-save:disabled{
+  background:rgba(75,143,232,0.35) !important;
+  color:rgba(75,143,232,0.6) !important;
+  cursor:not-allowed !important;
+  opacity:1 !important;
+  transform:none !important;
+  pointer-events:none;
+}
+
 
 .btn-del{
   width:clamp(36px,9vw,42px);height:clamp(36px,9vw,42px);
@@ -962,6 +971,17 @@ input[type=range].font-range::-webkit-slider-thumb{-webkit-appearance:none;width
   margin-bottom:12px;
 }
 #cat-name-inp:focus{border-color:var(--accent)}
+@keyframes shake{
+  0%,100%{transform:translateX(0)}
+  20%{transform:translateX(-7px)}
+  40%{transform:translateX(7px)}
+  60%{transform:translateX(-4px)}
+  80%{transform:translateX(4px)}
+}
+#cat-name-inp.shake{
+  animation:shake .4s cubic-bezier(.36,.07,.19,.97) both;
+  border-color:var(--danger) !important;
+}
 .color-palette{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:4px}
 .color-swatch{
   width:32px;height:32px;border-radius:50%;cursor:pointer;
@@ -1308,8 +1328,8 @@ input[type=range].font-range::-webkit-slider-thumb{-webkit-appearance:none;width
 <div id="v-editor" class="view">
   <div class="topbar">
     <button class="btn-back" onclick="closeEditor()">← Atrás</button>
-    <input id="inp-name" type="text" placeholder="Nombre de la tabla…" autocomplete="off">
-    <button id="btn-save-main" class="btn-save" onclick="saveTable()">✓ Guardar</button>
+    <input id="inp-name" type="text" placeholder="Nombre de la tabla…" autocomplete="off" oninput="_checkEditorDirty()">
+    <button id="btn-save-main" class="btn-save" onclick="saveTable()">Guardar</button>
   </div>
 
   <div class="ed-meta-row">
@@ -2426,13 +2446,31 @@ function renderCatList(){
   list.innerHTML='';
   if(!cats.length){ list.innerHTML=`<div style="font-size:var(--fs-xs);color:var(--muted)">Aún no hay categorías.</div>`; return; }
   cats.forEach(c=>{
-    list.innerHTML+=`<div class="cat-row">
-      <div class="cat-dot">
+    const row=document.createElement('div');
+    row.className='cat-row';
+    row.innerHTML=`<div class="cat-dot">
         <svg viewBox="0 0 24 24" width="18" height="18" fill="${c.color}" xmlns="http://www.w3.org/2000/svg"><path d="M21.41 11.58l-9-9A2 2 0 0 0 11 2H4a2 2 0 0 0-2 2v7c0 .53.21 1.04.59 1.41l9 9A2 2 0 0 0 13 22a2 2 0 0 0 1.41-.59l7-7A2 2 0 0 0 22 13a2 2 0 0 0-.59-1.42zM5.5 7A1.5 1.5 0 1 1 7 5.5 1.5 1.5 0 0 1 5.5 7z"/></svg>
-      </div>
-      <div class="cat-name">${esc(c.name)}</div>
-      <button class="cat-del" onclick="delCat('${c.id}')">✕</button>
-    </div>`;
+      </div>`;
+    const inp=document.createElement('input');
+    inp.type='text';
+    inp.value=c.name;
+    inp.className='cat-name';
+    inp.style.cssText='flex:1;background:transparent;border:none;outline:none !important;font-family:\'Syne\',sans-serif;font-weight:600;font-size:var(--fs-sm);color:var(--text);-webkit-text-fill-color:var(--text);min-width:0;cursor:text;-webkit-appearance:none;box-shadow:none;caret-color:var(--accent);';
+    inp.addEventListener('focus',()=>{ inp.style.background='var(--surface3)'; inp.style.borderRadius='4px'; inp.style.padding='0 4px'; });
+    inp.addEventListener('blur',()=>{
+      inp.style.background='transparent'; inp.style.borderRadius=''; inp.style.padding='';
+      const trimmed=inp.value.trim();
+      if(trimmed && trimmed!==c.name){ c.name=trimmed; catSave(); renderFeed(); }
+      else if(!trimmed){ inp.value=c.name; }
+    });
+    inp.addEventListener('keydown',(e)=>{ if(e.key==='Enter'){ e.preventDefault(); inp.blur(); } });
+    row.appendChild(inp);
+    const del=document.createElement('button');
+    del.className='cat-del';
+    del.textContent='✕';
+    del.addEventListener('click',()=>delCat(c.id));
+    row.appendChild(del);
+    list.appendChild(row);
   });
 }
 
@@ -2465,7 +2503,7 @@ function openCatCreate(){
   }
 }
 function closeCatModal(){ 
-  if(tutActive) return;
+  if(tutActive && TUT_STEPS[tutStep]?.id==='category') return;
   document.getElementById('cat-modal').classList.remove('open'); 
 }
 
@@ -2480,7 +2518,15 @@ function selectColor(c){ selColor=c; buildPalette(); }
 
 function saveCat(){
   const name=document.getElementById('cat-name-inp').value.trim();
-  if(!name)return;
+  if(!name){
+    const inp=document.getElementById('cat-name-inp');
+    inp.classList.remove('shake');
+    void inp.offsetWidth;
+    inp.classList.add('shake');
+    inp.addEventListener('animationend',()=>inp.classList.remove('shake'),{once:true});
+    inp.focus();
+    return;
+  }
   cats.push({id:'c'+Date.now(),name,color:selColor});
   catSave(); renderCatList(); closeCatModal(); closeCfg();
   renderCatPickList(); renderFeed();
@@ -2546,6 +2592,7 @@ function assignCat(id){
   if(cat){ chip.innerHTML=`<span class="dot" style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${cat.color};margin-right:4px"></span>${esc(cat.name)}`; }
   else    { chip.textContent='Sin categoría'; }
   closeCatPick();
+  _checkEditorDirty();
 }
 
 // ═══════════════════════════════════════════════════
@@ -2595,6 +2642,7 @@ function pickImp(val){
   }
   closeImpSheet();
   if(tutActive && TUT_STEPS[tutStep]?.id==='importance') advanceTut();
+  _checkEditorDirty();
 }
 
 // ═══════════════════════════════════════════════════
@@ -2603,6 +2651,44 @@ function pickImp(val){
 let editIdx=-1,eRows=7,eCols=7,eType='info',eCatId=null;
 let calcMode=false,selOp='+',selCells=new Set();
 let cellMeta={};// "r,c" → {role:'ingreso'|'gasto'}
+
+
+// ═══════════════════════════════════════════════════
+//  EDITOR DIRTY STATE (save button enable/disable)
+// ═══════════════════════════════════════════════════
+let _editorSnapshot = '';
+let _editorDirty = false;
+
+function _takeEditorSnapshot(){
+  const parts = [];
+  parts.push(document.getElementById('inp-name').value || '');
+  parts.push(document.getElementById('imp-chip').textContent || '');
+  parts.push(document.getElementById('cat-chip').textContent || '');
+  document.querySelectorAll('#etable .dc textarea, #etable .dc input, #etable .ch input').forEach(el => {
+    parts.push(el.value || '');
+  });
+  return parts.join('||');
+}
+
+function setSaveDirty(dirty){
+  _editorDirty = dirty;
+  const btn = document.getElementById('btn-save-main');
+  if(!btn) return;
+  if(dirty){
+    btn.disabled = false;
+    btn.style.background = '';
+    btn.style.color = '';
+    btn.style.cursor = '';
+    btn.style.opacity = '';
+  } else {
+    btn.disabled = true;
+  }
+}
+
+function _checkEditorDirty(){
+  const current = _takeEditorSnapshot();
+  setSaveDirty(current !== _editorSnapshot);
+}
 
 function openEditor(data=null,idx=-1,tpl=null){
   editIdx=idx;
@@ -2636,6 +2722,10 @@ function openEditor(data=null,idx=-1,tpl=null){
   updateMathPanel();
   buildEditTable(data,headers);
   showView('v-editor');
+  setTimeout(function(){
+    _editorSnapshot = _takeEditorSnapshot();
+    setSaveDirty(false);
+  }, 0);
 }
 
 function closeEditor(){ showView('v-feed'); renderFeed(document.getElementById('search-bar').value.trim()); }
@@ -2650,6 +2740,7 @@ function setType(t){
   eType=t;
   document.querySelectorAll('.type-chip').forEach(c=>c.classList.toggle('active',c.dataset.type===t));
   updateMathPanel();
+  _checkEditorDirty();
 }
 
 // Aplica bloqueos en los type-chips según la plantilla seleccionada
@@ -2720,8 +2811,21 @@ function buildEditTable(existing,headers=[]){
       inp.addEventListener('input',()=>autoResize(inp));
       // Inicializar altura al cargar
       requestAnimationFrame(()=>autoResize(inp));
-      // Usar doble clic para seleccionar en modo cálculo
-      inp.addEventListener('dblclick',(e)=>{ e.stopPropagation(); onCellClick(td,r,c,inp); });
+      // Doble toque / doble clic para seleccionar en modo cálculo/finanzas.
+      // El primer toque enfoca el textarea para escribir; el segundo toque
+      // (dentro de 350 ms) activa la selección de celda para calcular.
+      let _dblTapTimer = null;
+      inp.addEventListener('click',(e)=>{
+        e.stopPropagation();
+        if(eType==='info') return;
+        if(_dblTapTimer){
+          clearTimeout(_dblTapTimer);
+          _dblTapTimer=null;
+          onCellClick(td,r,c,inp);
+        } else {
+          _dblTapTimer=setTimeout(()=>{ _dblTapTimer=null; },350);
+        }
+      });
       // Para tutorial paso 'grid': avanzar con Enter o al perder foco (móvil)
       // En textarea, Enter inserta salto de línea — solo avanzar tutorial con Shift+Enter o blur
       inp.addEventListener('keydown', (e) => {
@@ -2744,6 +2848,9 @@ function buildEditTable(existing,headers=[]){
       td.appendChild(inp);row.appendChild(td);
     }
   }
+  document.querySelectorAll('#etable .dc textarea, #etable .dc input, #etable .ch input').forEach(el => {
+    el.addEventListener('input', _checkEditorDirty);
+  });
 }
 
 function onCellClick(td,r,c,inp){
@@ -2765,8 +2872,8 @@ function setOp(btn){
 function calcResult(){
   const vals=[...selCells].map(key=>{
     const [r,c]=key.split(',');
-    const inp=document.querySelector(`#etable tr:nth-child(${parseInt(r)+2}) td:nth-child(${parseInt(c)+2}) input`);
-    return parseFloat(inp?.value.replace(/[,$\s]/g,''));
+    const inp=document.querySelector(`#etable tr:nth-child(${parseInt(r)+2}) td:nth-child(${parseInt(c)+2}) textarea`);
+    return parseFloat((inp?.value||'').replace(/[,$\s]/g,''));
   }).filter(v=>!isNaN(v));
   if(vals.length<2){document.getElementById('math-result').textContent=vals.length===1?fmtNum(vals[0]):'—';return;}
   let res=vals[0];
