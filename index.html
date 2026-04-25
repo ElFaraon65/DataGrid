@@ -625,7 +625,8 @@ body{
   min-width: 80px;
 }
 
-.etable .dc input {
+.etable .dc input,
+.etable .dc textarea {
   display: block;
   width: 100%;
   background: transparent;
@@ -638,23 +639,36 @@ body{
   box-sizing: border-box;
 }
 
-.etable .dc.label-dc input {
+/* textarea: sin scroll, crece con el contenido */
+.etable .dc textarea {
+  resize: none;
+  overflow: hidden;
+  min-height: 36px;
+  line-height: 1.5;
+  vertical-align: top;
+}
+
+.etable .dc.label-dc input,
+.etable .dc.label-dc textarea {
   font-family: 'Syne',sans-serif;
   font-weight: 600;
   font-size: var(--fs-sm);
 }
 
-.etable .dc input:focus {
+.etable .dc input:focus,
+.etable .dc textarea:focus {
   background: var(--a-dim);
   color: var(--accent);
 }
 
-.etable .dc.label-dc input:focus {
+.etable .dc.label-dc input:focus,
+.etable .dc.label-dc textarea:focus {
   background: var(--b-dim);
   color: var(--blue);
 }
 
-.etable .dc input::placeholder { color: var(--border); }
+.etable .dc input::placeholder,
+.etable .dc textarea::placeholder { color: var(--border); }
 
 /* Ajuste fino para pantallas muy pequeñas */
 @media (max-width: 480px) {
@@ -1699,7 +1713,7 @@ const TUT_STEPS=[
    title:'Ingrese al menos un dato',
    msg:'Toque cualquier celda de la cuadrícula y escriba un valor. Cuando lo haya hecho, aparecerá el botón para continuar.',
    wait:'fill',btn:'Continuar →',
-   fillCheck:()=>[...document.querySelectorAll('#etable td.dc input')].some(i=>i.value.trim())},
+   fillCheck:()=>[...document.querySelectorAll('#etable td.dc textarea')].some(i=>i.value.trim())},
   // 11
   {id:'save',
    target:'#btn-save-main',
@@ -1795,7 +1809,7 @@ function renderTutStep(){
   }
 
   // Control de inputs de la tabla: bloqueados en 'grid-info', habilitados en 'grid'
-  const tableInputs = document.querySelectorAll('#etable td.dc input, #etable th.ch input');
+  const tableInputs = document.querySelectorAll('#etable td.dc textarea, #etable th.ch input');
   tableInputs.forEach(inp => {
     if (tutActive) {
       const locked = (s.id === 'grid-info');
@@ -2695,14 +2709,23 @@ function buildEditTable(existing,headers=[]){
       const key=`${r},${c}`;
       const role=cellMeta[key]?.role||null;
       td.className='dc'+(c===0?' label-dc':'')+(role==='ingreso'?' ing-cell':role==='gasto'?' gas-cell':'');
-      const inp=document.createElement('input');inp.type='text';
+      const inp=document.createElement('textarea');inp.rows=1;
       inp.placeholder=c===0?`Fila ${r+1}`:'—';
       inp.value=existing?(existing.data[r]?.[c]||''):'';
+      // Auto-resize: ajustar altura al contenido
+      function autoResize(el){
+        el.style.height='auto';
+        el.style.height=el.scrollHeight+'px';
+      }
+      inp.addEventListener('input',()=>autoResize(inp));
+      // Inicializar altura al cargar
+      requestAnimationFrame(()=>autoResize(inp));
       // Usar doble clic para seleccionar en modo cálculo
       inp.addEventListener('dblclick',(e)=>{ e.stopPropagation(); onCellClick(td,r,c,inp); });
       // Para tutorial paso 'grid': avanzar con Enter o al perder foco (móvil)
+      // En textarea, Enter inserta salto de línea — solo avanzar tutorial con Shift+Enter o blur
       inp.addEventListener('keydown', (e) => {
-        if (tutActive && TUT_STEPS[tutStep]?.id === 'grid' && e.key === 'Enter') {
+        if (tutActive && TUT_STEPS[tutStep]?.id === 'grid' && e.key === 'Enter' && !e.shiftKey) {
           const val = e.target.value.trim();
           if (val.length > 0) {
             e.preventDefault();
@@ -2777,7 +2800,7 @@ function collectData(){
   const rows=document.getElementById('etable').rows;
   const headers=[...rows[0].querySelectorAll('th.ch input')].map(i=>i.value);
   const data=[];
-  for(let r=1;r<rows.length;r++) data.push([...rows[r].querySelectorAll('td.dc input')].map(i=>i.value));
+  for(let r=1;r<rows.length;r++) data.push([...rows[r].querySelectorAll('td.dc textarea')].map(i=>i.value));
   return{headers,data};
 }
 
@@ -3456,7 +3479,7 @@ document.addEventListener('keydown', function(e){
   if(!tr) return;
 
   // Inputs navegables de la fila actual (excluye el número de fila .rn)
-  const rowInputs = [...tr.querySelectorAll('td.dc input, th.ch input')];
+  const rowInputs = [...tr.querySelectorAll('td.dc textarea, th.ch input')];
   const currentIdx = rowInputs.indexOf(active);
   const allRows   = [...tableEl.rows];
   const rowIdx    = allRows.indexOf(tr);
@@ -3490,10 +3513,10 @@ document.addEventListener('keydown', function(e){
     e.preventDefault();
     if(rowIdx < allRows.length - 1){
       const nextTr = allRows[rowIdx + 1];
-      const dcInputs = [...tr.querySelectorAll('td.dc input')];
+      const dcInputs = [...tr.querySelectorAll('td.dc textarea')];
       const dcIdx    = dcInputs.indexOf(active);
       if(dcIdx >= 0){
-        moveTo([...nextTr.querySelectorAll('td.dc input')][dcIdx]);
+        moveTo([...nextTr.querySelectorAll('td.dc textarea')][dcIdx]);
       }
     }
 
@@ -3504,8 +3527,8 @@ document.addEventListener('keydown', function(e){
       // Si el destino es la fila de cabeceras (row 0), apuntar a th.ch inputs
       const prevInputs = rowIdx === 1
         ? [...prevTr.querySelectorAll('th.ch input')]
-        : [...prevTr.querySelectorAll('td.dc input')];
-      const dcInputs = [...tr.querySelectorAll('td.dc input')];
+        : [...prevTr.querySelectorAll('td.dc textarea')];
+      const dcInputs = [...tr.querySelectorAll('td.dc textarea')];
       const dcIdx    = dcInputs.indexOf(active);
       if(dcIdx >= 0) moveTo(prevInputs[dcIdx]);
     }
