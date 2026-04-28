@@ -2259,9 +2259,21 @@ window.addEventListener('DOMContentLoaded',()=>{
     } else {
       showView('v-feed');
       renderFeed();
-      // Si el tutorial ya fue completado, mostrar el asistente en la esquina
+      // Si el tutorial ya fue completado, mostrar el asistente en la esquina.
+      // Esperamos a que la imagen cargue para que offsetWidth sea real y la
+      // posición left se calcule correctamente desde el primer frame.
       if(cfg.tutDone){
-        setTimeout(()=>{ _asstShow('clickable'); }, 300);
+        const _initAsst = () => {
+          const wrap = document.getElementById('assistant-wrap');
+          const img  = wrap ? wrap.querySelector('img') : null;
+          if (img && !img.complete) {
+            img.addEventListener('load',  ()=>{ _asstShow('clickable'); }, { once:true });
+            img.addEventListener('error', ()=>{ _asstShow('clickable'); }, { once:true });
+          } else {
+            _asstShow('clickable');
+          }
+        };
+        setTimeout(_initAsst, 300);
       }
     }
   },1500);
