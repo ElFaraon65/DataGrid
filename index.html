@@ -1391,7 +1391,7 @@ input[type=range].font-range::-webkit-slider-thumb{-webkit-appearance:none;width
 #assistant-wrap {
   position: fixed;
   bottom: -400px;
-  left: -20px !important;
+  left: -20px;
   z-index: 953;
   pointer-events: none;
   overflow: visible;           /* el menú absoluto puede sobresalir */
@@ -2254,9 +2254,11 @@ window.addEventListener('DOMContentLoaded',()=>{
   setTimeout(()=>{ document.getElementById('splash-bar').style.width='100%'; },50);
   setTimeout(()=>{
     document.getElementById('v-splash').style.display='none';
-    if(!cfg.welcomeDone){
+    if(!cfg.welcomeDone && !cfg.tutDone){
       document.getElementById('v-welcome').classList.add('active');
     } else {
+      // Usuario veterano: si tutDone=true pero welcomeDone faltaba, normalizarlo
+      if(!cfg.welcomeDone){ cfg.welcomeDone=true; cfgSave(); }
       showView('v-feed');
       renderFeed();
       // Si el tutorial ya fue completado, mostrar el asistente en la esquina
@@ -4763,8 +4765,10 @@ function _asstInitImage() {
     // Si falla la carga, quitar la img rota y volver a mostrar el placeholder
     if (img.parentNode) img.parentNode.removeChild(img);
   };
-  // Src inicial: la imagen intro (o la primera disponible)
-  const firstSrc = ASST_IMAGES.intro || ASST_IMAGES.neutral || Object.values(ASST_IMAGES).find(v => v && !v.startsWith('LINK_'));
+  // Src inicial: neutral para evitar flash incorrecto al arrancar en modo clickable
+  // (usuarios que ya completaron el tutorial). El tutorial llama a _asstUpdateImage('intro')
+  // explícitamente cuando lo necesita, así que partir de neutral no rompe nada.
+  const firstSrc = ASST_IMAGES.neutral || ASST_IMAGES.intro || Object.values(ASST_IMAGES).find(v => v && !v.startsWith('LINK_'));
   img.src = firstSrc;
   wrap.appendChild(img);
 }

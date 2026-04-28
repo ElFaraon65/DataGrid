@@ -36,10 +36,29 @@ self.addEventListener('activate', event => {
   );
 });
 
-/* ── FETCH: cache-first con fallback a red ── */
+/* ── FETCH: network-first para HTML, cache-first para el resto ── */
 self.addEventListener('fetch', event => {
   /* Solo interceptar GET */
   if (event.request.method !== 'GET') return;
+
+  const isHTML = event.request.destination === 'document' ||
+                 event.request.url.endsWith('index.html');
+
+  if (isHTML) {
+    /* Network-first para el HTML: siempre intenta la red primero */
+    event.respondWith(
+      fetch(event.request)
+        .then(response => {
+          if (response && response.status === 200) {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+          }
+          return response;
+        })
+        .catch(() => caches.match(event.request))
+    );
+    return;
+  }
 
   event.respondWith(
     caches.match(event.request).then(cached => {
