@@ -1403,6 +1403,8 @@ input[type=range].font-range::-webkit-slider-thumb{-webkit-appearance:none;width
 /* Post-tutorial (clickable): queda POR DETRÁS del overlay (809) y drawer (810) */
 #assistant-wrap.clickable {
   z-index: 807;
+  pointer-events: auto !important;
+  cursor: pointer;
 }
 /* Oculto forzado — ignora cualquier media query de bottom */
 #assistant-wrap.asst-hidden {
@@ -1613,14 +1615,15 @@ img.assistant-avatar {
 
 /* ── Móvil: menú a la derecha del asistente a la altura de la cabeza (igual que PC) ── */
 @media (max-width: 639px) {
-  #assistant-wrap { left: 0; }
+  #assistant-wrap { 
+    left: -12px !important;   /* Mueve el asistente más a la izquierda */
+  }
   #assistant-menu {
     top: 5%;
     bottom: auto;
     left: 100%;
-    margin-left: 6px;
+    margin-left: 2px;        /* Ajusta el margen del menú para que no se descuadre */
     margin-bottom: 0;
-    /* Ocupa el espacio restante entre el avatar (~46vw) y el borde derecho */
     width: calc(54vw - 28px);
     min-width: 0;
     max-width: 200px;
@@ -2254,18 +2257,75 @@ window.addEventListener('DOMContentLoaded',()=>{
   setTimeout(()=>{ document.getElementById('splash-bar').style.width='100%'; },50);
   setTimeout(()=>{
     document.getElementById('v-splash').style.display='none';
-    if(!cfg.welcomeDone && !cfg.tutDone){
-      document.getElementById('v-welcome').classList.add('active');
-    } else {
-      // Usuario veterano: si tutDone=true pero welcomeDone faltaba, normalizarlo
-      if(!cfg.welcomeDone){ cfg.welcomeDone=true; cfgSave(); }
-      showView('v-feed');
-      renderFeed();
-      // Si el tutorial ya fue completado, mostrar el asistente en la esquina
-      if(cfg.tutDone){
-        setTimeout(()=>{ _asstShow('clickable'); }, 300);
+    if (!cfg.welcomeDone && !cfg.tutDone) {
+  document.getElementById('v-welcome').classList.add('active');
+} else {
+  // El usuario ya pasó la bienvenida (o completó el tutorial)
+  if (!cfg.welcomeDone) { cfg.welcomeDone = true; }
+  if (!cfg.tutDone) { cfg.tutDone = true; }       // ← consideramos tutorial terminado
+  cfgSave();
+
+  showView('v-feed');
+  renderFeed();
+
+  // Misma secuencia que después del tutorial, pero con transición de subida
+  setTimeout(() => {
+    tutActive = false;
+
+const aWrap = document.getElementById('assistant-wrap');
+if (aWrap) {
+  aWrap.classList.remove('asst-hidden', 'clickable', 'asking', 'intro');
+  aWrap.classList.add('visible');           // solo visible, inicia transición
+  // Posicionar en esquina izquierda SIN cambiar imagen
+_asstSide = 'left';
+aWrap.classList.remove('corner-right');
+aWrap.classList.add('corner-left');
+aWrap.style.left = '16px';   // margen izquierdo fijo
+// Mostrar desde YA la imagen neutra (no la de narración)
+_asstUpdateImage('neutral');
+}
+
+// Después de que termine la transición (0.55s ≈ 600ms), lo hacemos clickable
+// y forzamos la imagen neutra
+setTimeout(() => {
+  if (aWrap) {
+    aWrap.classList.add('clickable');
+    aWrap.onclick = function(e) {
+      const r = aWrap.getBoundingClientRect();
+      const relX = e.clientX - r.left;
+      const relY = e.clientY - r.top;
+      const marginX = r.width * 0.22;
+      const marginY = r.height * 0.08;
+      if (relX >= marginX && relX <= r.width - marginX &&
+          relY >= marginY && relY <= r.height * 0.92) {
+        toggleAsstMenu();
       }
-    }
+    };
+    // Forzar imagen neutra ahora que ya está visible y clickable
+    _asstUpdateImage('neutral');
+  }
+}, 600);
+
+// Desbloquear controles del editor (sin cambios)
+const saveBtn = document.getElementById('btn-save-main');
+if (saveBtn) {
+  saveBtn.disabled = false;
+  saveBtn.style.opacity = '';
+  saveBtn.style.cursor = '';
+  saveBtn.style.pointerEvents = '';
+  saveBtn.setAttribute('aria-disabled', 'false');
+}
+const catChip = document.getElementById('cat-chip');
+if (catChip) { catChip.style.pointerEvents = ''; catChip.style.opacity = ''; }
+const impChip = document.getElementById('imp-chip');
+if (impChip) { impChip.style.pointerEvents = ''; impChip.style.opacity = ''; }
+document.querySelectorAll('.type-chip').forEach(c => { c.style.pointerEvents = ''; c.style.opacity = ''; });
+document.querySelectorAll('.step-btn').forEach(b => { b.style.pointerEvents = ''; b.style.opacity = ''; });
+_unlockTplModal();
+_unlockCfgDrawer();
+_unlockFeedUI();
+  }, 500);
+}
   },1500);
 });
 
